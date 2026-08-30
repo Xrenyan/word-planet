@@ -4,7 +4,7 @@
 
 ## 下载
 
-请从 [Releases](../../releases/latest) 下载最新版 `词星球-Windows免安装版.zip`。
+请从 [Releases](../../releases/latest) 下载最新版 `WordPlanet-Windows-Portable.zip`。
 
 ## 使用方法
 
@@ -28,7 +28,7 @@
 Release 同时提供 SHA-256 校验文件。下载后可以在 PowerShell 中执行：
 
 ```powershell
-Get-FileHash -Algorithm SHA256 -LiteralPath '.\词星球-Windows免安装版.zip'
+Get-FileHash -Algorithm SHA256 -LiteralPath '.\WordPlanet-Windows-Portable.zip'
 ```
 
 本仓库用于经过验证的成品发布与下载。
