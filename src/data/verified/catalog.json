@@ -1,0 +1,96 @@
+{
+  "series": {
+    "name": "义务教育教科书·英语（配有听力材料）",
+    "publisher": "外语教学与研究出版社",
+    "editor": "孙有中",
+    "curriculumStandard": "2022",
+    "evidence": {
+      "claim": "series-editor-curriculum-range",
+      "sourceUrl": "https://www.moe.gov.cn/srcsite/A26/s8001/202408/W020250418502592948423.pdf",
+      "sourcePage": 5,
+      "rightsBasis": "official-public-catalog"
+    }
+  },
+  "books": [
+    {
+      "id": "fltrp-nse-2022-g3-upper",
+      "label": "三年级上册",
+      "grade": 3,
+      "semester": "upper",
+      "status": "awaiting-source",
+      "evidence": {
+        "isbn": "978-7-5213-5489-8",
+        "title": "英语（新标准）（三年级起点）三年级上册（新版）",
+        "seriesEditionClaim": {
+          "claim": "series-editor-curriculum-range",
+          "sourceUrl": "https://www.moe.gov.cn/srcsite/A26/s8001/202408/W020250418502592948423.pdf",
+          "sourcePage": 5,
+          "rightsBasis": "official-public-catalog"
+        },
+        "titleIsbnClaim": {
+          "claim": "book-title-isbn",
+          "sourceUrl": "https://www.fltrp.com/upload/resources/file/2024/07/18/91583.pdf",
+          "sourcePage": 1,
+          "rightsBasis": "official-public-price-filing"
+        }
+      },
+      "words": []
+    },
+    {
+      "id": "fltrp-nse-2022-g3-lower",
+      "label": "三年级下册",
+      "grade": 3,
+      "semester": "lower",
+      "status": "awaiting-source",
+      "words": []
+    },
+    {
+      "id": "fltrp-nse-2022-g4-upper",
+      "label": "四年级上册",
+      "grade": 4,
+      "semester": "upper",
+      "status": "awaiting-source",
+      "words": []
+    },
+    {
+      "id": "fltrp-nse-2022-g4-lower",
+      "label": "四年级下册",
+      "grade": 4,
+      "semester": "lower",
+      "status": "awaiting-source",
+      "words": []
+    },
+    {
+      "id": "fltrp-nse-2022-g5-upper",
+      "label": "五年级上册",
+      "grade": 5,
+      "semester": "upper",
+      "status": "awaiting-source",
+      "words": []
+    },
+    {
+      "id": "fltrp-nse-2022-g5-lower",
+      "label": "五年级下册",
+      "grade": 5,
+      "semester": "lower",
+      "status": "awaiting-source",
+      "words": []
+    },
+    {
+      "id": "fltrp-nse-2022-g6-upper",
+      "label": "六年级上册",
+      "grade": 6,
+      "semester": "upper",
+      "status": "awaiting-source",
+      "words": []
+    },
+    {
+      "id": "fltrp-nse-2022-g6-lower",
+      "label": "六年级下册",
+      "grade": 6,
+      "semester": "lower",
+      "status": "awaiting-source",
+      "words": []
+    }
+  ]
+}

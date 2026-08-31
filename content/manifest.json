@@ -1,0 +1,19 @@
+{
+  "series": {
+    "name": "义务教育教科书·英语（配有听力材料）",
+    "publisher": "外语教学与研究出版社",
+    "editor": "孙有中",
+    "curriculumStandard": "2022",
+    "sourceId": "moe-2024-revised-catalog"
+  },
+  "books": [
+    { "id": "fltrp-nse-2022-g3-upper", "label": "三年级上册", "grade": 3, "semester": "upper", "status": "awaiting-source" },
+    { "id": "fltrp-nse-2022-g3-lower", "label": "三年级下册", "grade": 3, "semester": "lower", "status": "awaiting-source" },
+    { "id": "fltrp-nse-2022-g4-upper", "label": "四年级上册", "grade": 4, "semester": "upper", "status": "awaiting-source" },
+    { "id": "fltrp-nse-2022-g4-lower", "label": "四年级下册", "grade": 4, "semester": "lower", "status": "awaiting-source" },
+    { "id": "fltrp-nse-2022-g5-upper", "label": "五年级上册", "grade": 5, "semester": "upper", "status": "awaiting-source" },
+    { "id": "fltrp-nse-2022-g5-lower", "label": "五年级下册", "grade": 5, "semester": "lower", "status": "awaiting-source" },
+    { "id": "fltrp-nse-2022-g6-upper", "label": "六年级上册", "grade": 6, "semester": "upper", "status": "awaiting-source" },
+    { "id": "fltrp-nse-2022-g6-lower", "label": "六年级下册", "grade": 6, "semester": "lower", "status": "awaiting-source" }
+  ]
+}

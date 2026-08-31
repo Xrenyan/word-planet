@@ -1,0 +1,71 @@
+:root {
+  --color-sky-500: #4DB8FF;
+  --color-sky-100: #EAF6FF;
+  --color-mint-400: #63DCC4;
+  --color-mint-100: #D9F8EF;
+  --color-violet-600: #3569F6;
+  --color-violet-400: #7B8CFF;
+  --color-coral-500: #FF816F;
+  --color-star-400: #FFD65A;
+  --color-navy-900: #0D234D;
+  --color-navy-700: #49617F;
+  --color-white: #FFFFFF;
+  --background-page: #DDEEFF;
+  --surface-glass-strong: rgba(250, 253, 255, 0.78);
+  --surface-glass: rgba(248, 252, 255, 0.7);
+  --surface-glass-soft: rgba(244, 250, 255, 0.56);
+  --border-glass: rgba(255, 255, 255, 0.84);
+  --backdrop-blur: 28px;
+  --font-sans: "Nunito Sans Variable", "PingFang SC", "Microsoft YaHei UI", "Noto Sans SC", system-ui, sans-serif;
+  --text-display: clamp(2rem, 3vw, 3rem);
+  --text-h1: clamp(1.5rem, 2vw, 2rem);
+  --text-h2: 1.25rem;
+  --text-body: 1rem;
+  --text-control: 1.125rem;
+  --text-label: 0.875rem;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+  --shadow-glass: 0 24px 70px rgba(54, 91, 145, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  --shadow-control: 0 12px 28px rgba(45, 100, 198, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  --focus-ring: 0 0 0 4px rgba(53, 105, 246, 0.24);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --control-min: 48px;
+  --nav-mobile-height: 76px;
+  --motion-press-duration: 120ms;
+  --motion-panel-duration: 240ms;
+  --motion-feedback-duration: 360ms;
+  --motion-float-duration-min: 6s;
+  --motion-float-duration-max: 8s;
+  --motion-celebration-duration-min: 600ms;
+  --motion-celebration-duration-max: 900ms;
+  --motion-reduced-duration: 100ms;
+  --ease-standard: cubic-bezier(.2, .8, .2, 1);
+  --ease-feedback: cubic-bezier(.2, 1.35, .35, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-press-duration: var(--motion-reduced-duration);
+    --motion-panel-duration: var(--motion-reduced-duration);
+    --motion-feedback-duration: var(--motion-reduced-duration);
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --surface-glass-strong: var(--color-white);
+    --surface-glass: var(--color-white);
+    --surface-glass-soft: var(--color-white);
+    --border-glass: currentColor;
+  }
+}

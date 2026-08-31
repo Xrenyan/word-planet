@@ -1,0 +1,59 @@
+@import '@fontsource-variable/nunito-sans/wght.css';
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--background-page);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--color-navy-900);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: 620;
+  line-height: 1.55;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-violet-600);
+  box-shadow: var(--focus-ring);
+}
+
+h1 {
+  margin: 0;
+  font-size: var(--text-display);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: var(--motion-reduced-duration) !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--motion-reduced-duration) !important;
+  }
+}

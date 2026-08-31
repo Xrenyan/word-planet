@@ -1,0 +1,27 @@
+{
+  "sources": [
+    {
+      "id": "moe-2024-revised-catalog",
+      "title": "2024年义务教育国家课程教学用书目录（根据2022年版课程标准修订）",
+      "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202408/W020250418502592948423.pdf",
+      "page": 5,
+      "supports": ["publisher", "editor", "curriculum-standard", "grade-range"],
+      "rightsBasis": "official-public-catalog"
+    },
+    {
+      "id": "fltrp-2024-g3-upper-price-filing",
+      "title": "北京市中小学教材零售价格核定表",
+      "url": "https://www.fltrp.com/upload/resources/file/2024/07/18/91583.pdf",
+      "page": 1,
+      "supports": ["g3-upper-title", "g3-upper-isbn"],
+      "rightsBasis": "official-public-price-filing"
+    },
+    {
+      "id": "fltrp-2026-revised-usage",
+      "title": "小学英语课堂创新与教学展示",
+      "url": "https://www.fltrp.com/c/2026-04-19/541610.shtml",
+      "supports": ["revised-g3-lower", "revised-g4-lower", "revised-g5-upper"],
+      "rightsBasis": "official-public-news"
+    }
+  ]
+}
