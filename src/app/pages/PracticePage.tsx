@@ -240,6 +240,7 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
         {onBack && <Pressable className="verified-practice__back" onClick={onBack}><ArrowLeft aria-hidden="true" />返回词表</Pressable>}
         <p className="status-pill">{unitLabel(activeWord)}</p>
         <p className="verified-practice__progress" aria-live="polite">第 {currentIndex + 1} / {sessionWords.length} 词</p>
+        <progress className="verified-practice__meter" value={currentIndex + 1} max={sessionWords.length} aria-label="本组学习进度" />
       </div>
       <h2 id="practice-title" data-route-heading tabIndex={-1}>{resolvedMode === 'listen' ? '听音挑战' : modes.find(mode => mode.id === resolvedMode)?.label}</h2>
       <div className="practice-landing__modes verified-practice__modes" role="list" aria-label="练习方式">
@@ -254,15 +255,14 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
         {resolvedMode !== 'spell' && <figure>
           {resolvedMode === 'listen' ? <div className="listening-orbit" aria-label="请听声音作答"><Headphones weight="duotone" /><strong>小耳朵，准备好了吗？</strong><p>点发音，听完再选择</p></div> : <WordArtwork image={activeWord.image} term={activeWord.term} meaningZh={activeWord.meaningZh} wordId={activeWord.id} />}
         </figure>}
-        <div>
+        <div className="verified-practice__task">
           {resolvedMode === 'spell' && <section className="spelling-prompt" aria-label="中文提示"><span>这个单词怎么写？</span><strong>{activeWord.meaningZh}</strong></section>}
           {(resolvedMode === 'learn' || resolvedMode === 'speak') && <section className="verified-practice__word-card" aria-label={`正在学习单词 ${activeWord.term}`}>
-            <span>一起认识这个词</span>
             <strong lang="en">{activeWord.term}</strong>
             <p>{activeWord.meaningZh}</p>
-            <small>看图、听音，再大声读三遍</small>
           </section>}
           <PronunciationControls key={`${activeWord.id}-${resolvedMode}`} word={activeWord} showIpa={resolvedMode === 'learn' || resolvedMode === 'speak'} showRecorder={resolvedMode === 'speak'} />
+          {resolvedMode === 'learn' && <p className="verified-practice__hint">看图、听音，再大声读三遍</p>}
           {resolvedMode === 'spell' && <form onSubmit={submit}>
               <label htmlFor="verified-spelling">根据中文写英文</label>
               <div>
@@ -282,15 +282,15 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
           </section>}
           {feedback && <p className="verified-practice__feedback" role="status">{feedback}</p>}
           {saveWarning && <p className="practice-save-warning" role="alert">{saveWarning}</p>}
-          <WordDetails word={activeWord} />
         </div>
       </div>
       <nav className="verified-practice__navigation" aria-label="连续学习导航">
         <Pressable aria-label="上一个单词" disabled={currentIndex === 0} onClick={() => moveTo(currentIndex - 1)}><ArrowLeft aria-hidden="true" />上一个</Pressable>
         {currentIndex < sessionWords.length - 1
-          ? <Pressable aria-label="下一个单词" onClick={() => moveTo(currentIndex + 1)}>下一个<ArrowRight aria-hidden="true" /></Pressable>
-          : <Pressable aria-label="完成这一组" onClick={completeGroup}>完成这一组<ArrowRight aria-hidden="true" /></Pressable>}
+          ? <Pressable className="dashboard-primary-button" aria-label="下一个单词" onClick={() => moveTo(currentIndex + 1)}>下一个<ArrowRight aria-hidden="true" /></Pressable>
+          : <Pressable className="dashboard-primary-button" aria-label="完成这一组" onClick={completeGroup}>完成这一组<ArrowRight aria-hidden="true" /></Pressable>}
       </nav>
+      <WordDetails word={activeWord} />
     </section>
   )
 

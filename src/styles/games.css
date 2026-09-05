@@ -1,0 +1,653 @@
+/* Games use the shared page canvas; only the play surface carries a fill. */
+.game-hub,
+.bubble-game,
+.train-game,
+.memory-game,
+.delivery-game,
+.guardian-game {
+  display: grid;
+  align-content: start;
+  gap: 24px;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.game-hub { gap: 0; }
+.game-hub__heading,
+.bubble-game__header,
+.train-game__header,
+.memory-game__header,
+.delivery-game__header,
+.guardian-game__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.game-hub__heading { margin-bottom: 28px; }
+.game-hub__heading > div,
+.bubble-game__header > div,
+.train-game__header > div,
+.memory-game__header > div,
+.delivery-game__header > div,
+.guardian-game__header > div { min-width: 0; }
+.game-hub h2,
+.bubble-game h2,
+.train-game h2,
+.memory-game h2,
+.delivery-game h2,
+.guardian-game h2 {
+  margin: 0;
+  color: var(--color-navy-900);
+  font-size: 32px;
+  font-weight: 750;
+  letter-spacing: -.025em;
+}
+.game-hub__heading p,
+.bubble-game__header p,
+.train-game__header p,
+.memory-game__header p,
+.delivery-game__header p,
+.guardian-game__header p {
+  margin: 8px 0 0;
+  color: var(--color-navy-700);
+  font-size: 16px;
+  font-weight: 450;
+}
+.game-hub .demo-disclaimer,
+.bubble-game .demo-disclaimer,
+.train-game .demo-disclaimer,
+.memory-game .demo-disclaimer,
+.delivery-game .demo-disclaimer,
+.guardian-game .demo-disclaimer {
+  margin: 0 0 8px;
+  padding: 0;
+  color: var(--color-navy-700);
+  font-size: 13px;
+  font-weight: 450;
+  background: transparent;
+  border-radius: 0;
+}
+.game-hub__heading > svg,
+.bubble-game__sparkle,
+.train-game__header > svg,
+.memory-game__header > svg,
+.delivery-game__header > svg,
+.guardian-game__header > svg {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  padding: 11px;
+  color: var(--color-violet-600);
+  background: #eae5ff;
+  border-radius: 14px;
+}
+
+/* The library is an open list with a single filter band. */
+.game-hub__filters {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(150px, 200px) minmax(0, 1fr);
+  align-items: end;
+  gap: 20px;
+  margin-bottom: 8px;
+  padding: 20px 0;
+  border-block: 1px solid var(--color-border);
+}
+.game-hub__filters label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: var(--color-navy-700);
+  font-size: 14px;
+  font-weight: 650;
+}
+.game-hub__filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 14px;
+  color: var(--color-navy-900);
+  font-size: 16px;
+  font-weight: 450;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+.game-hub__filters > span {
+  align-self: center;
+  justify-self: end;
+  padding: 0;
+  color: var(--color-navy-700);
+  font-size: 14px;
+  font-weight: 450;
+}
+.game-hub__demo-card,
+.game-hub__formal-empty {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  min-width: 0;
+  padding: 24px 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+.game-hub__demo-card > div,
+.game-hub__formal-empty > div { min-width: 0; }
+.game-hub__demo-card h3,
+.game-hub__formal-empty h3 { margin: 0; font-size: 20px; font-weight: 750; }
+.game-hub__demo-card p,
+.game-hub__formal-empty p { margin: 6px 0 0; color: var(--color-navy-700); font-size: 14px; font-weight: 450; }
+.game-hub__demo-icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  color: #836515;
+  background: #f7edcb;
+  border-radius: 16px;
+  place-items: center;
+}
+.game-hub__demo-icon--train { color: #497344; background: #e5efdf; }
+.game-hub__demo-icon--memory { color: #a36244; background: #fae8de; }
+.game-hub__demo-icon--delivery { color: #39728e; background: #e0eff8; }
+.game-hub__demo-icon--guardian { color: var(--color-violet-600); background: #eae5ff; }
+.game-hub__demo-icon svg,
+.game-hub__formal-empty > svg { width: 28px; height: 28px; }
+.game-hub__formal-empty { grid-template-columns: 56px minmax(0, 1fr); }
+.game-hub__formal-empty > svg { justify-self: center; color: var(--color-navy-700); }
+.game-hub__formal-empty .game-hub__start { margin-top: 16px; }
+
+/* Shared actions keep the same proportions as the learning desk controls. */
+.game-hub__start,
+.bubble-game__next,
+.bubble-game__return,
+.train-game__check,
+.train-game__next,
+.train-game__return,
+.memory-game__continue,
+.memory-game__return,
+.delivery-game__start,
+.delivery-game__return,
+.guardian-game__next,
+.guardian-game__return,
+.guardian-game__stage form button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  gap: 8px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 11px 20px;
+  color: white;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.4;
+  background: var(--color-violet-600);
+  border: 1px solid var(--color-violet-600);
+  border-radius: 13px;
+  box-shadow: none;
+}
+.game-hub__start { justify-self: end; white-space: nowrap; }
+:is(.game-hub__start, .bubble-game__next, .bubble-game__return, .train-game__check, .train-game__next, .train-game__return, .memory-game__continue, .memory-game__return, .delivery-game__start, .delivery-game__return, .guardian-game__next, .guardian-game__return):hover:not(:disabled),
+.guardian-game__stage form button:hover:not(:disabled) { color: white; background: #5543c7; border-color: #5543c7; }
+:is(.game-hub, .bubble-game, .train-game, .memory-game, .delivery-game, .guardian-game) button:disabled { cursor: not-allowed; opacity: .5; }
+.game-back,
+.bubble-game__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: start;
+  min-height: 44px;
+  padding: 9px 12px;
+  margin-bottom: 20px;
+  color: var(--color-violet-600);
+  font-size: 14px;
+  font-weight: 650;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.game-back svg,
+.bubble-game__back svg { width: 20px; height: 20px; }
+
+/* Each challenge has one pale play surface and an unframed visual cue. */
+.bubble-game__stage,
+.train-game__stage,
+.delivery-game__stage,
+.guardian-game__stage {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 40px;
+  min-width: 0;
+  padding: 32px;
+  background: var(--surface-learning);
+  border: 0;
+  border-radius: 24px;
+  box-shadow: none;
+}
+.bubble-game__target,
+.train-game__target,
+.delivery-game__target,
+.guardian-game__stage figure {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  color: var(--color-navy-900);
+  text-align: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+:is(.bubble-game__target, .train-game__target, .delivery-game__target, .guardian-game__stage figure) .word-artwork {
+  width: 100%;
+  max-width: 300px;
+  height: 250px;
+  aspect-ratio: auto;
+  object-fit: contain;
+  padding: 8px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+.bubble-game__target figcaption,
+.train-game__target figcaption,
+.delivery-game__target figcaption,
+.guardian-game__stage figcaption { font-size: 16px; font-weight: 650; overflow-wrap: anywhere; }
+.bubble-game__choices,
+.delivery-game__choices,
+.guardian-game__choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: center;
+  gap: 16px;
+  min-width: 0;
+}
+.bubble-game__choice,
+.delivery-game__choices button,
+.guardian-game__choices button {
+  min-width: 0;
+  min-height: 64px;
+  padding: 14px 16px;
+  color: var(--color-navy-900);
+  font-size: 18px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  background: white;
+  border: 1px solid #d3ccec;
+  border-radius: 14px;
+  box-shadow: 0 2px 6px #38246a06;
+}
+.bubble-game__choice {
+  min-height: 80px;
+  font-size: 20px;
+  border-radius: 999px;
+  animation: bubble-float 3.4s ease-in-out infinite alternate;
+}
+.bubble-game__choice--2 { animation-delay: -.9s; }
+.bubble-game__choice--3 { animation-delay: -1.8s; }
+.bubble-game__choice--4 { animation-delay: -2.6s; }
+.bubble-game__choice:hover:not(:disabled),
+.delivery-game__choices button:hover:not(:disabled),
+.guardian-game__choices button:hover:not(:disabled) { background: #f9f7ff; border-color: var(--color-violet-600); }
+.bubble-game__choice:disabled { animation-play-state: paused; }
+.bubble-game .bubble-game__choice--correct:disabled { color: #397348; background: #e3f1e4; border-color: #87ad8a; opacity: 1; }
+.bubble-game__next-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.bubble-game__feedback,
+.train-game__feedback,
+.memory-game__feedback,
+.delivery-game__feedback,
+.guardian-game__feedback {
+  margin: 0;
+  padding: 12px 0;
+  color: var(--color-navy-900);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.6;
+}
+.bubble-game__feedback--correct { color: #397348; }
+.train-game__feedback:empty,
+.memory-game__feedback:empty { padding: 0; }
+.bubble-game__note,
+.train-game__note,
+.memory-game__note,
+.delivery-game__note,
+.guardian-game__note { margin: 0; color: var(--color-navy-700); font-size: 14px; font-weight: 450; }
+
+/* The train keeps its letter cars and a wrapping, touch-sized keyboard. */
+.train-game__practice { display: grid; min-width: 0; gap: 20px; }
+.train-game__prompt { margin: 0; font-size: 16px; font-weight: 650; }
+.train-game__rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 0 12px;
+  border-bottom: 3px solid #c8bfea;
+}
+.train-game__car {
+  display: grid;
+  min-width: 44px;
+  min-height: 50px;
+  padding: 8px;
+  color: var(--color-navy-900);
+  font-size: 22px;
+  font-weight: 650;
+  text-transform: lowercase;
+  background: white;
+  border: 1px solid #d3ccec;
+  border-radius: 12px 12px 6px 6px;
+  animation: train-car-bob 2.6s ease-in-out infinite alternate;
+  place-items: center;
+}
+.train-game__form,
+.guardian-game__stage form { display: grid; min-width: 0; gap: 12px; }
+.train-game__form label,
+.guardian-game__stage form label { color: var(--color-navy-700); font-size: 14px; font-weight: 650; }
+.train-game__form input,
+.guardian-game__stage form input {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  padding: 12px 14px;
+  color: var(--color-navy-900);
+  font-size: 18px;
+  background: white;
+  border: 1px solid #c9c4df;
+  border-radius: 12px;
+}
+.train-game__form input:focus,
+.guardian-game__stage form input:focus { border-color: var(--color-violet-600); }
+.train-game__touch-letters { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.train-game__touch-letters button {
+  display: grid;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 10px;
+  color: var(--color-violet-600);
+  font-size: 17px;
+  font-weight: 650;
+  background: white;
+  border: 1px solid #d3ccec;
+  border-radius: 12px;
+  box-shadow: none;
+  place-items: center;
+}
+.train-game__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* Card faces must remain separate 3D planes, including disabled matched cards. */
+.memory-game__progress { margin: 0; color: var(--color-navy-700); font-size: 15px; font-weight: 450; }
+.memory-game__deck {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  min-width: 0;
+  padding: 28px;
+  background: var(--surface-learning);
+  border-radius: 24px;
+}
+.memory-game__card {
+  display: block;
+  min-width: 0;
+  height: 148px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: none;
+  perspective: 800px;
+}
+.memory-game__card-inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition: transform 320ms var(--ease-standard);
+  transform-style: preserve-3d;
+}
+.memory-game__card--revealed .memory-game__card-inner { transform: rotateY(180deg); }
+.memory-game__card-front,
+.memory-game__card-back {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid #d3ccec;
+  border-radius: 14px;
+  box-shadow: 0 3px 8px #38246a09;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  place-items: center;
+}
+.memory-game__card-front { color: white; background: #8171d9; }
+.memory-game__card-front svg { width: 36px; height: 36px; }
+.memory-game__card-back {
+  grid-template-rows: minmax(0, 1fr);
+  gap: 6px;
+  padding: 10px;
+  color: var(--color-navy-900);
+  font-size: 16px;
+  font-weight: 650;
+  text-align: center;
+  overflow-wrap: anywhere;
+  background: white;
+  transform: rotateY(180deg);
+}
+.memory-game__card-back .word-artwork { width: 100%; height: 100%; min-height: 0; padding: 4px; object-fit: contain; border-radius: 0; background: transparent; }
+.memory-game__card-back .word-artwork--clue { gap: 6px; }
+.memory-game__card-back .word-artwork--clue svg { width: 28px; height: 28px; flex-shrink: 0; }
+.memory-game__card-back .word-artwork--clue strong { font-size: 15px; }
+.memory-game__card-back .word-artwork--clue small { font-size: 10px; }
+.memory-game__card-back > small { color: #397348; font-size: 12px; font-weight: 650; }
+.memory-game__card--matched .memory-game__card-back { grid-template-rows: minmax(0, 1fr) auto; border-color: #87ad8a; background: #f6faf5; }
+.memory-game .memory-game__card:disabled { opacity: 1; cursor: default; }
+.memory-game__card:hover:not(:disabled) { background: transparent; }
+.memory-game__card:focus-visible { outline-offset: 4px; box-shadow: none; }
+.memory-game__continue { justify-self: start; }
+
+/* Timed play keeps the pause control alongside a plain, readable timer. */
+.delivery-game__hud {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+.delivery-game__hud p { margin: 0; color: var(--color-navy-700); font-size: 15px; font-weight: 450; }
+.delivery-game__hud [role='timer'] { color: var(--color-violet-600); font-size: 24px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.delivery-game__hud button,
+.guardian-game__audio-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 11px 16px;
+  color: var(--color-violet-600);
+  font-size: 15px;
+  font-weight: 650;
+  background: white;
+  border: 1px solid #d3ccec;
+  border-radius: 13px;
+  box-shadow: none;
+}
+.delivery-game__target { animation: delivery-drift 3.2s ease-in-out infinite alternate; }
+.delivery-game__stage--paused { opacity: .65; }
+.delivery-game__stage--paused .delivery-game__target { animation-play-state: paused; }
+
+/* Shield progress is a small status row above the same play surface. */
+.guardian-game__progress { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border); }
+.guardian-game__progress > strong { font-size: 15px; font-weight: 650; }
+.guardian-game__progress > ol { display: flex; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.guardian-game__progress li { display: grid; width: 36px; height: 36px; color: #9493a8; border-radius: 50%; transition: color 220ms; place-items: center; }
+.guardian-game__progress li[data-outcome^='solved'] { color: var(--color-violet-600); background: #eae5ff; }
+.guardian-game__progress li[data-current='true'][data-outcome='pending'] { color: var(--color-violet-600); outline: 1px solid #b8ace8; outline-offset: 2px; }
+.guardian-game__progress svg { width: 26px; height: 26px; }
+.guardian-game__audio-panel { display: grid; justify-items: center; gap: 16px; min-width: 0; padding: 8px 0; text-align: center; }
+.guardian-game__audio-panel > svg { width: 64px; height: 64px; color: var(--color-violet-600); }
+.guardian-game__audio-panel h3 { margin: 0; font-size: 20px; font-weight: 750; }
+.guardian-game__audio-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.guardian-game__fallback { margin: 0; color: var(--color-navy-700); font-size: 14px; font-weight: 450; }
+.guardian-game__spelling-cue { min-width: 0; text-align: center; }
+.guardian-game__spelling-cue h3 { margin: 0 0 12px; color: var(--color-navy-700); font-size: 16px; font-weight: 650; }
+.guardian-game__spelling-cue p { margin: 0; color: var(--color-navy-900); font-size: 30px; font-weight: 750; overflow-wrap: anywhere; }
+.guardian-game__next { justify-self: end; }
+.guardian-game__stars { display: flex; gap: 8px; padding: 0; margin: 0; color: var(--color-violet-600); list-style: none; }
+.guardian-game__stars li { display: grid; place-items: center; }
+.guardian-game__stars svg { width: 28px; height: 28px; }
+
+/* Start and result screens use open spacing instead of another enclosing card. */
+.bubble-game--complete,
+.train-game--complete,
+.memory-game--complete,
+.delivery-game--complete,
+.guardian-game--complete,
+.delivery-game--start { justify-items: center; gap: 20px; max-width: 800px; margin: 24px auto 0; text-align: center; }
+:is(.bubble-game--complete, .train-game--complete, .memory-game--complete, .delivery-game--complete, .guardian-game--complete, .delivery-game--start) > p { max-width: 560px; margin: 0; }
+:is(.bubble-game--complete, .train-game--complete, .memory-game--complete, .delivery-game--complete, .guardian-game--complete) .game-back { margin: 0; justify-self: center; }
+:is(.bubble-game--complete, .train-game--complete, .memory-game--complete, .delivery-game--complete, .guardian-game--complete, .delivery-game--start) > button:not(.game-back) { justify-self: center; }
+.bubble-game__complete-badge,
+.train-game__complete-badge,
+.memory-game__complete-badge,
+.delivery-game__complete-badge,
+.guardian-game__complete-badge,
+.delivery-game__start-icon { display: grid; width: 76px; height: 76px; color: var(--color-violet-600); background: #eae5ff; border-radius: 24px; place-items: center; }
+:is(.bubble-game__complete-badge, .train-game__complete-badge, .memory-game__complete-badge, .delivery-game__complete-badge, .guardian-game__complete-badge, .delivery-game__start-icon) svg { width: 42px; height: 42px; }
+.bubble-game__result,
+.train-game__result,
+.memory-game__result,
+.delivery-game__result,
+.guardian-game__result { color: var(--color-violet-600); font-size: 26px; font-weight: 750; }
+.delivery-game__complete-actions,
+.guardian-game__complete-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.delivery-game--start .game-back { justify-self: start; margin-bottom: 8px; }
+
+@keyframes bubble-float { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+@keyframes train-car-bob { from { transform: translateY(0); } to { transform: translateY(-2px); } }
+@keyframes delivery-drift { from { transform: translateY(0); } to { transform: translateY(-3px); } }
+
+@media (max-width: 800px) {
+  .game-hub__filters { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; }
+  .game-hub__filters > span { grid-column: 1 / -1; justify-self: start; }
+  .bubble-game__stage,
+  .train-game__stage,
+  .delivery-game__stage,
+  .guardian-game__stage { gap: 24px; padding: 24px; }
+  .train-game__stage { grid-template-columns: 1fr; }
+  .train-game__target { grid-template-columns: 140px minmax(0, 1fr); align-items: center; }
+  .train-game__target .word-artwork { height: 140px; }
+  .memory-game__deck { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 24px; }
+}
+
+@media (max-width: 540px) {
+  .bubble-game,
+  .train-game,
+  .memory-game,
+  .delivery-game,
+  .guardian-game { gap: 20px; }
+  .game-hub h2,
+  .bubble-game h2,
+  .train-game h2,
+  .memory-game h2,
+  .delivery-game h2,
+  .guardian-game h2 { font-size: 26px; }
+  .game-hub__heading,
+  .bubble-game__header,
+  .train-game__header,
+  .memory-game__header,
+  .delivery-game__header,
+  .guardian-game__header { gap: 12px; }
+  .game-hub__heading > svg,
+  .bubble-game__sparkle,
+  .train-game__header > svg,
+  .memory-game__header > svg,
+  .delivery-game__header > svg,
+  .guardian-game__header > svg { width: 40px; height: 40px; padding: 9px; border-radius: 12px; }
+  .game-hub__heading p,
+  .bubble-game__header p,
+  .train-game__header p,
+  .memory-game__header p,
+  .delivery-game__header p,
+  .guardian-game__header p { font-size: 14px; }
+  .game-hub__heading { margin-bottom: 20px; }
+  .game-hub__filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px 12px; padding-block: 18px; }
+  .game-hub__filters > span { font-size: 13px; }
+  .game-hub__demo-card { grid-template-columns: 56px minmax(0, 1fr); gap: 12px 16px; padding: 22px 0; }
+  .game-hub__demo-icon { align-self: start; }
+  .game-hub__start { grid-column: 2; width: auto; max-width: 100%; min-height: 44px; justify-self: start; padding: 10px 16px; font-size: 14px; }
+  .game-hub__formal-empty { gap: 16px; padding-inline: 0; }
+  .game-hub__formal-empty .game-hub__start { white-space: normal; }
+  .game-back,
+  .bubble-game__back { margin-bottom: 16px; }
+  .bubble-game__stage,
+  .train-game__stage,
+  .delivery-game__stage,
+  .guardian-game__stage { grid-template-columns: 1fr; gap: 24px; padding: 22px 18px; }
+  .bubble-game__target,
+  .train-game__target,
+  .delivery-game__target,
+  .guardian-game__stage figure { grid-template-columns: 1fr; gap: 12px; }
+  :is(.bubble-game__target, .train-game__target, .delivery-game__target, .guardian-game__stage figure) .word-artwork { max-width: 190px; height: 140px; padding: 4px; }
+  .bubble-game__target figcaption,
+  .train-game__target figcaption,
+  .delivery-game__target figcaption,
+  .guardian-game__stage figcaption { font-size: 15px; }
+  .bubble-game__choices,
+  .delivery-game__choices,
+  .guardian-game__choices { gap: 12px; }
+  .bubble-game__choice { min-height: 70px; padding: 12px 10px; font-size: 18px; }
+  .delivery-game__choices button,
+  .guardian-game__choices button { min-height: 60px; padding: 12px 10px; font-size: 16px; }
+  .bubble-game__next-row { align-items: center; gap: 12px; }
+  .bubble-game__next { flex-shrink: 0; padding-inline: 16px; }
+  .train-game__practice { gap: 16px; }
+  .train-game__prompt { font-size: 14px; }
+  .train-game__rail { gap: 6px; }
+  .train-game__car { min-width: 34px; min-height: 44px; padding: 6px; font-size: 20px; }
+  .train-game__touch-letters { gap: 8px; }
+  .train-game__touch-letters button { min-width: 46px; min-height: 46px; padding: 10px; }
+  .train-game__actions > button { flex: 1; }
+  .memory-game__deck { gap: 10px; padding: 18px 14px; }
+  .memory-game__card { height: 120px; border-radius: 12px; }
+  .memory-game__card-front,
+  .memory-game__card-back { border-radius: 12px; }
+  .memory-game__card-front svg { width: 28px; height: 28px; }
+  .memory-game__card-back { padding: 6px; font-size: 14px; }
+  .memory-game__card-back .word-artwork--clue strong { font-size: 13px; }
+  .memory-game__card-back .word-artwork--clue small { display: none; }
+  .memory-game__card-back > small { font-size: 10px; }
+  .delivery-game__hud { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding-bottom: 16px; }
+  .delivery-game__hud > p:nth-child(2) { grid-column: 1; grid-row: 2; font-size: 13px; }
+  .delivery-game__hud button { grid-column: 2; grid-row: 1 / 3; min-height: 46px; padding-inline: 14px; }
+  .guardian-game__progress { gap: 12px; }
+  .guardian-game__progress > ol { gap: 6px; }
+  .guardian-game__audio-panel { gap: 14px; padding: 0; }
+  .guardian-game__audio-panel > svg { width: 48px; height: 48px; }
+  .guardian-game__audio-panel h3 { font-size: 18px; }
+  .guardian-game__spelling-cue p { font-size: 26px; }
+  .guardian-game__stage form button { width: 100%; }
+  .delivery-game__complete-actions,
+  .guardian-game__complete-actions { align-items: center; flex-direction: column; }
+  .bubble-game__result,
+  .train-game__result,
+  .memory-game__result,
+  .delivery-game__result,
+  .guardian-game__result { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble-game__choice,
+  .train-game__car,
+  .delivery-game__target { animation: none; }
+  .memory-game__card-inner,
+  .guardian-game__progress li { transition: none; }
+}

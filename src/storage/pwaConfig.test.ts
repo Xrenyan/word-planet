@@ -35,7 +35,7 @@ describe('production PWA contract', () => {
     expect(pwaOptions.includeManifestIcons).toBe(false)
     expect(pwaOptions.workbox).toMatchObject({
       navigateFallback: '/word-planet/index.html',
-      globPatterns: ['**/*.{js,css,html,json,png,svg,woff2}'],
+      globPatterns: ['**/*.{js,css,html,json,png,svg,webp,woff2}'],
       globIgnores: expect.arrayContaining(['**/concepts/**', '**/*.map']),
     })
     expect(pwaOptions.workbox).toHaveProperty('runtimeCaching')

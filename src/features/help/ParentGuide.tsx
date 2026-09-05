@@ -21,7 +21,8 @@ export function WordDetails({ word }: { word: VocabularyWordContract }) {
     <div className="word-details__links">
       {safeLink(word.source.url) && <a href={word.source.url} target="_blank" rel="noreferrer">查看词表来源</a>}
       {safeLink(word.ipaSource) && <a href={word.ipaSource} target="_blank" rel="noreferrer">查看音标来源</a>}
-      {word.image.src.startsWith('word-art/') && <a href={`${import.meta.env.BASE_URL}licenses/WORD-ARTWORK.txt`} target="_blank" rel="noreferrer">配图：OpenMoji · 作者与 CC BY-SA 4.0 许可</a>}
+      {word.image.src.startsWith('word-art/') && word.image.license === 'CC BY-SA 4.0' && <a href={`${import.meta.env.BASE_URL}licenses/WORD-ARTWORK.txt`} target="_blank" rel="noreferrer">配图：OpenMoji · 作者与 CC BY-SA 4.0 许可</a>}
+      {word.image.license === 'original-generated-reviewed' && <a href={`${import.meta.env.BASE_URL}licenses/GENERATED-ILLUSTRATIONS.txt`} target="_blank" rel="noreferrer">配图：AI 辅助记忆插图 · 非教材原图</a>}
       {safeLink(word.image.src) && <a href={word.image.src} target="_blank" rel="noreferrer">查看配图来源</a>}
     </div>
     {word.ipaNote && <p>{word.ipaNote}</p>}

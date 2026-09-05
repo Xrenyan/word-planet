@@ -39,7 +39,17 @@ describe('static curriculum client', () => {
     for (const book of books) {
       const content = WordsResponseSchema.parse(JSON.parse(readFileSync(resolve(`public/data/books/${book.id}.json`), 'utf8')))
       expect(content.words).toHaveLength(book.availableWordCount!)
-      for (const word of content.words) if (word.image.src.startsWith('word-art/')) expect(readFileSync(resolve('public',word.image.src), 'utf8')).toContain('<svg')
+      for (const word of content.words) {
+        if (!word.image.src.startsWith('word-art/')) continue
+        const image = readFileSync(resolve('public', word.image.src))
+        if (word.image.src.endsWith('.svg')) expect(image.toString('utf8')).toContain('<svg')
+        else {
+          expect(word.image.src).toMatch(/\.webp$/)
+          expect(image.toString('ascii', 0, 4)).toBe('RIFF')
+          expect(image.toString('ascii', 8, 12)).toBe('WEBP')
+          expect(image.readUInt32LE(4) + 8).toBe(image.length)
+        }
+      }
     }
   })
 

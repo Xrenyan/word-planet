@@ -13,7 +13,7 @@ function downloadJson(contents: string) {
   URL.revokeObjectURL(url)
 }
 
-export function ProgressDataControls({ api, profileId = 'local-child', download = downloadJson }: { api: WordPlanetApi; profileId?: string; download?: (contents: string) => void }) {
+export function ProgressDataControls({ api, profileId = 'local-child', download = downloadJson, onChanged }: { api: WordPlanetApi; profileId?: string; download?: (contents: string) => void; onChanged?: () => void }) {
   const [progress, setProgress] = useState<ServerProgress | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error' | 'cleared'>('loading')
   const [confirming, setConfirming] = useState(false)
@@ -45,6 +45,7 @@ export function ProgressDataControls({ api, profileId = 'local-child', download 
       setProgress({ profileId, totalEvents: 0, priorityWordIds: [], events: [] })
       setConfirming(false)
       setStatus('cleared')
+      onChanged?.()
     } catch { setStatus('error') }
   }
 
@@ -56,6 +57,7 @@ export function ProgressDataControls({ api, profileId = 'local-child', download 
       const { imported } = await api.importProgress(await file.text(), profileId)
       await load()
       setImportMessage(`已加入 ${imported} 条学习记录，重复的记录会自动跳过。`)
+      onChanged?.()
     } catch { setImportMessage('这份备份暂时无法导入。请选择词星球导出的文件，并确认浏览器允许保存网站数据。原有记录未改动。') }
   }
 

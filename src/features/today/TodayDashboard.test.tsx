@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { WordPlanetApi } from '../../app/api/client'
 import { TodayDashboard } from './TodayDashboard'
@@ -27,6 +28,17 @@ function api(overrides: Partial<WordPlanetApi> = {}): WordPlanetApi {
 }
 
 describe('TodayDashboard', () => {
+  it('opens the textbook or games from the full quick-action row', async () => {
+    const user = userEvent.setup()
+    const openBooks = vi.fn()
+    const openGames = vi.fn()
+    render(<TodayDashboard api={api()} onOpenCurriculum={openBooks} onOpenGames={openGames} />)
+    await screen.findByRole('heading', { name: 'apple' })
+    await user.click(screen.getByRole('button', { name: /教材.*跟着课本学单词/ }))
+    expect(openBooks).toHaveBeenCalledOnce()
+    await user.click(screen.getByRole('button', { name: /游戏.*换个方式练一练/ }))
+    expect(openGames).toHaveBeenCalledOnce()
+  })
   it('renders the first verified word from the real curriculum api', async () => {
     render(<TodayDashboard api={api()} />)
 

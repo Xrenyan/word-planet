@@ -4,6 +4,11 @@ import { describe, expect, it } from 'vitest'
 import { WordArtwork } from './WordArtwork'
 
 describe('WordArtwork', () => {
+  it('loads reviewed bundled webp artwork without exposing the answer during a quiz', () => {
+    render(<WordArtwork revealTerm={false} meaningZh="体育运动" image={{ src: 'word-art/sport.webp', alt: '足球、篮球和网球拍', license: 'original-generated-reviewed' }} term="sport" />)
+    expect(screen.getByRole('img', { name: '足球、篮球和网球拍' })).toHaveAttribute('src', `${import.meta.env.BASE_URL}word-art/sport.webp`)
+    expect(screen.queryByText('sport')).not.toBeInTheDocument()
+  })
   it('keeps a readable meaning clue when an image fails instead of pretending a generic drawing illustrates the word', () => {
     render(<WordArtwork wordId="g3-apple" meaningZh="苹果" image={{ src: 'https://invalid.example/apple.png', alt: '苹果记忆图', license: 'source' }} term="apple" />)
 

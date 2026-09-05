@@ -1,4 +1,11 @@
 {
+  "sport": {
+    "src": "word-art/sport.webp",
+    "alt": "足球、篮球、网球拍和运动鞋",
+    "license": "original-generated-reviewed",
+    "author": "词星球 · AI 辅助制作",
+    "note": "词义记忆插图，非教材原图。"
+  },
   "ping-pong": {
     "src": "word-art/1F3D3.svg",
     "alt": "乒乓球拍和乒乓球",

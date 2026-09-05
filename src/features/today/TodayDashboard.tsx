@@ -1,6 +1,6 @@
 import { unitLabel } from '../../curriculum/labels'
 import { WordDetails } from '../help/ParentGuide'
-import { BookOpen } from '@phosphor-icons/react'
+import { ArrowRight, BookOpen, GameController } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import type { VocabularyWordContract } from '../../../shared/contracts'
 import type { WordPlanetApi } from '../../app/api/client'
@@ -30,9 +30,10 @@ type TodayDashboardProps = {
   api: WordPlanetApi
   onStartLearning?: (word: VocabularyWordContract) => void
   onOpenCurriculum?: () => void
+  onOpenGames?: () => void
 }
 
-export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: TodayDashboardProps) {
+export function TodayDashboard({ api, onStartLearning, onOpenCurriculum, onOpenGames }: TodayDashboardProps) {
   const [state, setState] = useState<DashboardState>({ status: 'loading' })
 
   const load = useCallback(async (signal?: AbortSignal) => {
@@ -88,7 +89,7 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
           <h2 id="today-dashboard-title" data-route-heading tabIndex={-1}>今天的学习</h2>
           <p>每天学一点，单词记得牢。</p>
         </div>
-        <Pressable className="dashboard-secondary-button" onClick={onOpenCurriculum}>换课本</Pressable>
+        <Pressable className="dashboard-secondary-button" onClick={onOpenCurriculum}><BookOpen aria-hidden="true" />换课本</Pressable>
       </div>
 
       {state.status === 'loading' && (
@@ -118,10 +119,11 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
       )}
 
       {state.status === 'ready' && (
+        <>
         <div className="today-dashboard__lesson">
           <div className="today-dashboard__word">
             <p className="today-dashboard__context">{state.bookLabel} · {unitLabel(state.word)}</p>
-            <h3>{state.word.term}</h3>
+            <h3 lang="en">{state.word.term}</h3>
             <p className="today-dashboard__meaning">{state.word.meaningZh}</p>
           </div>
           <figure className="today-dashboard__art">
@@ -130,12 +132,19 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
           <div className="today-dashboard__controls">
             <PronunciationControls word={state.word} showRecorder={false} />
             <Pressable className="dashboard-primary-button" onClick={() => onStartLearning?.(state.word)}>
-              <BookOpen aria-hidden="true" weight="fill" />开始学习
+              <BookOpen aria-hidden="true" />开始学习<ArrowRight aria-hidden="true" />
             </Pressable>
           </div>
+        </div>
+        <div className="today-dashboard__footer">
           <p className="today-dashboard__progress">今天答对了 {state.completed} 个单词</p>
           <WordDetails word={state.word} />
         </div>
+        <div className="today-dashboard__shortcuts">
+          <Pressable onClick={onOpenCurriculum}><BookOpen aria-hidden="true" /><strong>教材</strong><span>跟着课本学单词</span><ArrowRight aria-hidden="true" /></Pressable>
+          <Pressable onClick={onOpenGames}><GameController aria-hidden="true" /><strong>游戏</strong><span>换个方式练一练</span><ArrowRight aria-hidden="true" /></Pressable>
+        </div>
+        </>
       )}
     </section>
   )

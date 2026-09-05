@@ -11,7 +11,7 @@ type WordArtworkProps = {
 
 export function WordArtwork({ image, term, meaningZh = '', wordId, revealTerm = true }: WordArtworkProps) {
   const [failed, setFailed] = useState(false)
-  const bundledArtwork = /^word-art\/[\w-]+\.svg$/.test(image.src)
+  const bundledArtwork = /^word-art\/[\w-]+\.(svg|webp)$/.test(image.src)
   const safeRemoteArtwork = /^https:\/\//.test(image.src) && revealTerm
   const source = bundledArtwork ? `${import.meta.env.BASE_URL}${image.src}` : safeRemoteArtwork ? image.src : null
 

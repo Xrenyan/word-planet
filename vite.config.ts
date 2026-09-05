@@ -17,15 +17,15 @@ export const pwaOptions: Partial<VitePWAOptions> = {
     display: 'standalone',
     start_url: base,
     scope: base,
-    theme_color: '#78c9ff',
-    background_color: '#eef8ff',
+    theme_color: '#6554d9',
+    background_color: '#f8f9fd',
     icons: [
       { src: `${base}icons/icon-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
       { src: `${base}icons/icon-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
     ]
   },
   workbox: {
-    globPatterns: ['**/*.{js,css,html,json,png,svg,woff2}'],
+    globPatterns: ['**/*.{js,css,html,json,png,svg,webp,woff2}'],
     globIgnores: ['**/concepts/**', '**/*.map', '**/*report*', '**/*ledger*'],
     navigateFallback: `${base}index.html`,
     cleanupOutdatedCaches: true,

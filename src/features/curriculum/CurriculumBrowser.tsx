@@ -52,21 +52,23 @@ export function CurriculumBrowser({ api, onSelectBook }: CurriculumBrowserProps)
           const count = book.availableWordCount ?? book.verifiedWordCount
           const available = count > 0
           return (
-            <article key={book.id} className="curriculum-browser__book">
+            <Pressable
+              key={book.id}
+              className="curriculum-browser__book"
+              aria-label={available ? `打开${book.label}，${count}个词` : `${book.label} 词表准备中`}
+              disabled={!available}
+              onClick={() => onSelectBook(book.id)}
+            >
               <span className="curriculum-browser__grade">{book.grade}</span>
-              <div>
-                <h3>{book.label}</h3>
+              <span className="curriculum-browser__book-content">
+                <span className="curriculum-browser__book-title">{book.label}</span>
                 {book.editionLabel && <strong className="edition-label">{book.editionLabel.includes('Module') || book.editionLabel.includes('旧版') ? 'Module 单元 · 旧版' : 'Unit 单元'}</strong>}
-                <p>{available ? `${count} 个单词` : '词表准备中'}</p>
-              </div>
-              <Pressable
-                aria-label={available ? `打开${book.label}，${count}个词` : `${book.label} 词表准备中`}
-                disabled={!available}
-                onClick={() => onSelectBook(book.id)}
-              >
+                <span className="curriculum-browser__book-count">{available ? `${count} 个单词` : '词表准备中'}</span>
+              </span>
+              <span className="curriculum-browser__book-arrow">
                 {available ? <ArrowRight aria-hidden="true" weight="bold" /> : <BookOpen aria-hidden="true" />}
-              </Pressable>
-            </article>
+              </span>
+            </Pressable>
           )
         })}
       </div>

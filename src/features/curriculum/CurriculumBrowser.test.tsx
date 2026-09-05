@@ -5,6 +5,28 @@ import type { WordPlanetApi } from '../../app/api/client'
 import { CurriculumBrowser } from './CurriculumBrowser'
 
 describe('CurriculumBrowser', () => {
+  it('opens a book from its visible title and supports keyboard activation on the same entry', async () => {
+    const onSelectBook = vi.fn()
+    const api: WordPlanetApi = {
+      getBooks: vi.fn().mockResolvedValue({ books: [
+        { id: 'g4-upper', label: '四年级上册', grade: 4, semester: 'upper', status: 'verified', verifiedWordCount: 165 },
+      ] }),
+      getWords: vi.fn(),
+    }
+    const user = userEvent.setup()
+    render(<CurriculumBrowser api={api} onSelectBook={onSelectBook} />)
+
+    await user.click(await screen.findByText('四年级上册'))
+    expect(onSelectBook).toHaveBeenCalledWith('g4-upper')
+    expect(onSelectBook).toHaveBeenCalledTimes(1)
+
+    const bookButton = screen.getByRole('button', { name: '打开四年级上册，165个词' })
+    bookButton.focus()
+    await user.keyboard('{Enter}')
+    await user.keyboard(' ')
+    expect(onSelectBook).toHaveBeenCalledTimes(3)
+  })
+
   it('loads all book slots and opens only a book with verified words', async () => {
     const onSelectBook = vi.fn()
     const api: WordPlanetApi = {

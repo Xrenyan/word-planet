@@ -4,10 +4,11 @@ test('loads the complete static curriculum and opens a real word', async ({ page
   const serverApiRequests: string[] = []
   page.on('request', (request) => { if (new URL(request.url()).pathname.includes('/api/')) serverApiRequests.push(request.url()) })
   await page.goto('./')
-  await expect(page.getByText('1195', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '今天的学习' })).toBeVisible()
   await page.getByRole('button', { name: '播放英式发音' }).click()
   await expect(page.getByText('英式发音播放完成')).toBeVisible()
   await page.getByRole('link', { name: '教材' }).click()
+  await expect(page.getByRole('button', { name: /^打开.+册，/ })).toHaveCount(8)
   await expect(page.getByRole('heading', { name: '教材' })).toBeVisible()
   await expect(page.getByRole('button', { name: /打开三年级上册，212个词/ })).toBeVisible()
   await page.getByRole('button', { name: /打开三年级上册，212个词/ }).click()

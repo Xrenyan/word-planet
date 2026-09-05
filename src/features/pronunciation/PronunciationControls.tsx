@@ -210,7 +210,8 @@ export function PronunciationControls({
             <SpeakerHigh aria-hidden="true" weight="fill" />{activeAccent === locale ? '播放中' : `${label(locale)}发音`}
           </Pressable>
         ))}
-        <Pressable className="audio-action" aria-label="慢速播放" aria-pressed={slow} disabled={recording || recordingPending} onClick={() => setSlow(value => !value)}>
+        <Pressable className="audio-action audio-action--slow" aria-label="慢速播放" aria-pressed={slow} disabled={recording || recordingPending} onClick={() => setSlow(value => !value)}>
+          <span className="audio-action__switch" aria-hidden="true" />
           {slow ? '慢速 0.72×' : '慢速播放'}
         </Pressable>
       </div>

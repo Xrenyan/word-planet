@@ -13,6 +13,14 @@ const apple: VocabularyWordContract = {
 }
 
 describe('ReviewCenter', () => {
+  it('offers a direct route back to learning when there are no due words', async () => {
+    const user = userEvent.setup()
+    const openBooks = vi.fn()
+    const api = { getReview: vi.fn().mockResolvedValue({ profileId: 'local-child', items: [] }) } as unknown as WordPlanetApi
+    render(<ReviewCenter api={api} onStudy={vi.fn()} onOpenCurriculum={openBooks} />)
+    await user.click(await screen.findByRole('button', { name: '去选单词' }))
+    expect(openBooks).toHaveBeenCalledOnce()
+  })
   it('shows only the real server review queue and opens the selected word', async () => {
     const user = userEvent.setup()
     const onStudy = vi.fn()
