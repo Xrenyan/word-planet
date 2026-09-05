@@ -1,0 +1,6 @@
+Vocabulary illustrations: OpenMoji 17.0.0, by HfG Schwäbisch Gmünd and OpenMoji contributors.
+Project: https://openmoji.org/
+Source: https://github.com/hfg-gmuend/openmoji/tree/17.0.0/color/svg
+License: CC BY-SA 4.0, https://creativecommons.org/licenses/by-sa/4.0/
+Unmodified source SVGs copied locally. Individual authors, original annotations and source URLs are recorded in content/word-artwork.json.
+These are reference illustrations, not textbook illustrations. Only manually selected, meaning-matched words receive artwork.

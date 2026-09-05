@@ -5,6 +5,13 @@ import { demoWords } from '../test/fixtures/gameWords'
 import { createMemoryDeck } from './memoryEngine'
 
 describe('createMemoryDeck', () => {
+  it('limits a large textbook unit to four distinct groups instead of an unmanageable wall of cards', () => {
+    const words = Array.from({length: 30}, (_, i) => ({...demoWords[0], id: `demo-word-${i}`, term: `word${i}`}))
+    const deck = createMemoryDeck(words, 21)
+    expect(deck).toHaveLength(12)
+    expect(new Set(deck.map(card => card.wordId)).size).toBe(4)
+    expect(new Set(createMemoryDeck(words, 99).map(card => card.wordId))).not.toEqual(new Set(deck.map(card => card.wordId)))
+  })
   it('creates exactly one image, English and Chinese card for every supplied word', () => {
     const supplied = demoWords.slice(0, 3)
     const deck = createMemoryDeck(supplied, 17)

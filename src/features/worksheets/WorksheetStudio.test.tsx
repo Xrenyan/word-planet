@@ -18,7 +18,7 @@ describe('WorksheetStudio', () => {
     await user.click(await screen.findByRole('button', { name: '生成单元默写纸' }))
 
     expect(screen.getByRole('heading', { name: 'Unit 1 默写练习' })).toBeVisible()
-    expect(screen.getByText('苹果')).toBeVisible()
+    expect(screen.getByText('1. 苹果')).toBeVisible()
     expect(screen.getByText('apple')).toBeVisible()
     expect(screen.getByText('题目保留内容状态；公开匹配词不会冒充出版社核验词')).toBeVisible()
     expect(fetchWorksheet).toHaveBeenCalledWith(expect.objectContaining({ bookId: 'g3-upper', unit: 1 }))

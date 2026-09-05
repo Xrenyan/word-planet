@@ -40,6 +40,19 @@ describe('BubbleMatchGame', () => {
 })
 
 describe('GameHub', () => {
+  it.each(['memory-only', 'rejected'] as const)('warns when a %s answer cannot be durably saved', async (failure) => {
+    const user = userEvent.setup()
+    const progressRecorder = { record: failure === 'rejected' ? vi.fn().mockRejectedValue(new Error('storage unavailable')) : vi.fn().mockResolvedValue('memory-only' as const) }
+    render(<GameHub api={api()} progressRecorder={progressRecorder} onReturnToLearning={vi.fn()} />)
+    await screen.findByText('4 个单元词 · 每局随机选词')
+    await user.click(screen.getByRole('button', { name: '开始泡泡找单词' }))
+    const target = screen.getByTestId('bubble-target').getAttribute('data-word-id')!
+    await user.click(screen.getAllByRole('button').find(button => button.dataset.wordId === target)!)
+    expect(await screen.findByRole('alert')).toHaveTextContent('未能保存到此设备')
+    await user.click(screen.getByRole('button', { name: '返回游戏中心' }))
+    expect(screen.getByRole('alert')).toHaveTextContent('未能保存到此设备')
+  })
+
   it('never falls back to sample words when the real service fails', async () => {
     render(<GameHub api={api({ getBooks: vi.fn().mockRejectedValue(new Error('offline')) })} progressRecorder={recorder} onReturnToLearning={vi.fn()} />)
     expect(await screen.findByText('教材游戏暂不可用')).toBeVisible()
@@ -52,7 +65,7 @@ describe('GameHub', () => {
     const user = userEvent.setup()
     const progressRecorder = { record: vi.fn().mockResolvedValue('synced' as const) }
     render(<GameHub api={api()} progressRecorder={progressRecorder} onReturnToLearning={vi.fn()} />)
-    expect(await screen.findByText('4 个本局词')).toBeVisible()
+    expect(await screen.findByText('4 个单元词 · 每局随机选词')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '开始泡泡找单词' }))
     const target = screen.getByTestId('bubble-target').getAttribute('data-word-id')!
     const correct = screen.getAllByRole('button').find((button) => button.dataset.wordId === target)!

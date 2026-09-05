@@ -114,7 +114,7 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
         <p className="demo-disclaimer">{gameScopeLabel(gameRounds[0].scope)}</p>
         <h2 ref={titleRef} id="train-game-title" data-route-heading tabIndex={-1}>小火车到站啦</h2>
         <p className="train-game__result">拼对 {gameRounds.length} / {gameRounds.length} 轮</p>
-        <p>这是本局实际结果，已经保存在此设备。</p>
+        <p>这是本局实际结果，可以回到学习继续巩固。</p>
         <button className="train-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
       </section>
     )
@@ -134,7 +134,7 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
 
       <div className="train-game__stage">
         <figure className="train-game__target" data-testid="train-target" data-word-id={current.target.id}>
-          <WordArtwork wordId={current.target.id} image={current.target.image} term={current.target.term} />
+          <WordArtwork revealTerm={false} wordId={current.target.id} meaningZh={current.target.meaningZh} image={current.target.image} term={current.target.term} />
           <figcaption>{current.target.meaningZh}</figcaption>
         </figure>
         <div className="train-game__practice">

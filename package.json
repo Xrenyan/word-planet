@@ -12,6 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
+    "test:resources": "node --test scripts/*.test.mjs",
     "test:e2e": "playwright test",
     "preview": "vite preview --host 127.0.0.1 --port 4177"
   },

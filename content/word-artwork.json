@@ -1,0 +1,1162 @@
+{
+  "ping-pong": {
+    "src": "word-art/1F3D3.svg",
+    "alt": "乒乓球拍和乒乓球",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3D3.svg",
+    "sourceAnnotation": "ping pong"
+  },
+  "volleyball": {
+    "src": "word-art/1F3D0.svg",
+    "alt": "排球",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3D0.svg",
+    "sourceAnnotation": "volleyball"
+  },
+  "money": {
+    "src": "word-art/1F4B4.svg",
+    "alt": "钞票",
+    "license": "CC BY-SA 4.0",
+    "author": "Marius Schnabel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4B4.svg",
+    "sourceAnnotation": "yen banknote"
+  },
+  "dish": {
+    "src": "word-art/1F37D.svg",
+    "alt": "盘子与餐具",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F37D.svg",
+    "sourceAnnotation": "fork and knife with plate"
+  },
+  "sunshine": {
+    "src": "word-art/2600.svg",
+    "alt": "太阳照射的阳光",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2600.svg",
+    "sourceAnnotation": "sun"
+  },
+  "house": {
+    "src": "word-art/1F3E0.svg",
+    "alt": "房屋",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3E0.svg",
+    "sourceAnnotation": "house"
+  },
+  "pig": {
+    "src": "word-art/1F416.svg",
+    "alt": "猪",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F416.svg",
+    "sourceAnnotation": "pig"
+  },
+  "cow": {
+    "src": "word-art/1F404.svg",
+    "alt": "奶牛",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F404.svg",
+    "sourceAnnotation": "cow"
+  },
+  "weather": {
+    "src": "word-art/26C5.svg",
+    "alt": "太阳与云，表示天气",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/26C5.svg",
+    "sourceAnnotation": "sun behind cloud"
+  },
+  "sunny": {
+    "src": "word-art/2600.svg",
+    "alt": "晴朗的太阳",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2600.svg",
+    "sourceAnnotation": "sun"
+  },
+  "cloud": {
+    "src": "word-art/2601.svg",
+    "alt": "云",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2601.svg",
+    "sourceAnnotation": "cloud"
+  },
+  "cloudy": {
+    "src": "word-art/1F325.svg",
+    "alt": "大片云遮住太阳，多云天气",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F325.svg",
+    "sourceAnnotation": "sun behind large cloud"
+  },
+  "wind": {
+    "src": "word-art/1F32C.svg",
+    "alt": "吹动的风",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F32C.svg",
+    "sourceAnnotation": "wind face"
+  },
+  "windy": {
+    "src": "word-art/1F32C.svg",
+    "alt": "刮风的天气",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F32C.svg",
+    "sourceAnnotation": "wind face"
+  },
+  "rain": {
+    "src": "word-art/1F327.svg",
+    "alt": "云中落下雨滴",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F327.svg",
+    "sourceAnnotation": "cloud with rain"
+  },
+  "rainy": {
+    "src": "word-art/1F327.svg",
+    "alt": "下雨的天气",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F327.svg",
+    "sourceAnnotation": "cloud with rain"
+  },
+  "snow": {
+    "src": "word-art/1F328.svg",
+    "alt": "云中落下雪花",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F328.svg",
+    "sourceAnnotation": "cloud with snow"
+  },
+  "teacher": {
+    "src": "word-art/1F9D1-200D-1F3EB.svg",
+    "alt": "站在黑板前的老师",
+    "license": "CC BY-SA 4.0",
+    "author": "Benedikt Groß",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9D1-200D-1F3EB.svg",
+    "sourceAnnotation": "teacher"
+  },
+  "ice cream": {
+    "src": "word-art/1F368.svg",
+    "alt": "冰激凌",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F368.svg",
+    "sourceAnnotation": "ice cream"
+  },
+  "coat": {
+    "src": "word-art/1F9E5.svg",
+    "alt": "外套",
+    "license": "CC BY-SA 4.0",
+    "author": "Daniel Quiros",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9E5.svg",
+    "sourceAnnotation": "coat"
+  },
+  "tv": {
+    "src": "word-art/1F4FA.svg",
+    "alt": "电视机",
+    "license": "CC BY-SA 4.0",
+    "author": "Sina Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4FA.svg",
+    "sourceAnnotation": "television"
+  },
+  "beach": {
+    "src": "word-art/1F3D6.svg",
+    "alt": "沙滩和遮阳伞",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3D6.svg",
+    "sourceAnnotation": "beach with umbrella"
+  },
+  "sea": {
+    "src": "word-art/1F30A.svg",
+    "alt": "海浪",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F30A.svg",
+    "sourceAnnotation": "water wave"
+  },
+  "bus": {
+    "src": "word-art/1F68C.svg",
+    "alt": "公共汽车",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F68C.svg",
+    "sourceAnnotation": "bus"
+  },
+  "car": {
+    "src": "word-art/1F697.svg",
+    "alt": "小汽车",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F697.svg",
+    "sourceAnnotation": "automobile"
+  },
+  "train": {
+    "src": "word-art/1F686.svg",
+    "alt": "火车",
+    "license": "CC BY-SA 4.0",
+    "author": "Nadja Grün",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F686.svg",
+    "sourceAnnotation": "train"
+  },
+  "city": {
+    "src": "word-art/1F3D9.svg",
+    "alt": "城市里的高楼",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3D9.svg",
+    "sourceAnnotation": "cityscape"
+  },
+  "town": {
+    "src": "word-art/1F3D8.svg",
+    "alt": "城镇中的一组房屋",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3D8.svg",
+    "sourceAnnotation": "houses"
+  },
+  "ship": {
+    "src": "word-art/1F6A2.svg",
+    "alt": "大船",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6A2.svg",
+    "sourceAnnotation": "ship"
+  },
+  "plane": {
+    "src": "word-art/2708.svg",
+    "alt": "飞机",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2708.svg",
+    "sourceAnnotation": "airplane"
+  },
+  "truck": {
+    "src": "word-art/1F69B.svg",
+    "alt": "载货卡车",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F69B.svg",
+    "sourceAnnotation": "articulated lorry"
+  },
+  "bike": {
+    "src": "word-art/1F6B2.svg",
+    "alt": "自行车",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6B2.svg",
+    "sourceAnnotation": "bicycle"
+  },
+  "subway": {
+    "src": "word-art/1F687.svg",
+    "alt": "地铁",
+    "license": "CC BY-SA 4.0",
+    "author": "Nadja Grün",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F687.svg",
+    "sourceAnnotation": "metro"
+  },
+  "tram": {
+    "src": "word-art/1F68B.svg",
+    "alt": "有轨电车",
+    "license": "CC BY-SA 4.0",
+    "author": "Nadja Grün",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F68B.svg",
+    "sourceAnnotation": "tram car"
+  },
+  "wheel": {
+    "src": "word-art/1F6DE.svg",
+    "alt": "车轮",
+    "license": "CC BY-SA 4.0",
+    "author": "Niklas Kuntz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6DE.svg",
+    "sourceAnnotation": "wheel"
+  },
+  "left": {
+    "src": "word-art/2B05.svg",
+    "alt": "向左的箭头",
+    "license": "CC BY-SA 4.0",
+    "author": "Guemil Project",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2B05.svg",
+    "sourceAnnotation": "left arrow"
+  },
+  "cinema": {
+    "src": "word-art/1F3A6.svg",
+    "alt": "电影院标志",
+    "license": "CC BY-SA 4.0",
+    "author": "Liz Bravo",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3A6.svg",
+    "sourceAnnotation": "cinema"
+  },
+  "hospital": {
+    "src": "word-art/1F3E5.svg",
+    "alt": "医院",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3E5.svg",
+    "sourceAnnotation": "hospital"
+  },
+  "woman": {
+    "src": "word-art/1F469.svg",
+    "alt": "成年女子",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F469.svg",
+    "sourceAnnotation": "woman"
+  },
+  "walk": {
+    "src": "word-art/1F6B6.svg",
+    "alt": "正在走路的人",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6B6.svg",
+    "sourceAnnotation": "person walking"
+  },
+  "girl": {
+    "src": "word-art/1F467.svg",
+    "alt": "女孩",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F467.svg",
+    "sourceAnnotation": "girl"
+  },
+  "apple": {
+    "src": "word-art/1F34E.svg",
+    "alt": "苹果",
+    "license": "CC BY-SA 4.0",
+    "author": "Liz Bravo",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F34E.svg",
+    "sourceAnnotation": "red apple"
+  },
+  "banana": {
+    "src": "word-art/1F34C.svg",
+    "alt": "香蕉",
+    "license": "CC BY-SA 4.0",
+    "author": "Marius Schnabel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F34C.svg",
+    "sourceAnnotation": "banana"
+  },
+  "grape": {
+    "src": "word-art/1F347.svg",
+    "alt": "葡萄",
+    "license": "CC BY-SA 4.0",
+    "author": "Hend Hourani",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F347.svg",
+    "sourceAnnotation": "grapes"
+  },
+  "strawberry": {
+    "src": "word-art/1F353.svg",
+    "alt": "草莓",
+    "license": "CC BY-SA 4.0",
+    "author": "Liz Bravo",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F353.svg",
+    "sourceAnnotation": "strawberry"
+  },
+  "watermelon": {
+    "src": "word-art/1F349.svg",
+    "alt": "西瓜",
+    "license": "CC BY-SA 4.0",
+    "author": "Marius Schnabel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F349.svg",
+    "sourceAnnotation": "watermelon"
+  },
+  "carrot": {
+    "src": "word-art/1F955.svg",
+    "alt": "胡萝卜",
+    "license": "CC BY-SA 4.0",
+    "author": "Marius Schnabel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F955.svg",
+    "sourceAnnotation": "carrot"
+  },
+  "tomato": {
+    "src": "word-art/1F345.svg",
+    "alt": "西红柿",
+    "license": "CC BY-SA 4.0",
+    "author": "Marius Schnabel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F345.svg",
+    "sourceAnnotation": "tomato"
+  },
+  "cucumber": {
+    "src": "word-art/1F952.svg",
+    "alt": "黄瓜",
+    "license": "CC BY-SA 4.0",
+    "author": "Liz Bravo",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F952.svg",
+    "sourceAnnotation": "cucumber"
+  },
+  "corn": {
+    "src": "word-art/1F33D.svg",
+    "alt": "玉米",
+    "license": "CC BY-SA 4.0",
+    "author": "Marius Schnabel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F33D.svg",
+    "sourceAnnotation": "ear of corn"
+  },
+  "bean": {
+    "src": "word-art/1FAD8.svg",
+    "alt": "豆子",
+    "license": "CC BY-SA 4.0",
+    "author": "Jana Junk",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1FAD8.svg",
+    "sourceAnnotation": "beans"
+  },
+  "rice": {
+    "src": "word-art/1F35A.svg",
+    "alt": "米饭",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F35A.svg",
+    "sourceAnnotation": "cooked rice"
+  },
+  "milk": {
+    "src": "word-art/1F95B.svg",
+    "alt": "牛奶",
+    "license": "CC BY-SA 4.0",
+    "author": "Laura Humpfer",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F95B.svg",
+    "sourceAnnotation": "glass of milk"
+  },
+  "egg": {
+    "src": "word-art/1F95A.svg",
+    "alt": "鸡蛋",
+    "license": "CC BY-SA 4.0",
+    "author": "Niklas Kuntz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F95A.svg",
+    "sourceAnnotation": "egg"
+  },
+  "cheese": {
+    "src": "word-art/1F9C0.svg",
+    "alt": "奶酪",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9C0.svg",
+    "sourceAnnotation": "cheese wedge"
+  },
+  "hamburger": {
+    "src": "word-art/1F354.svg",
+    "alt": "汉堡包",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F354.svg",
+    "sourceAnnotation": "hamburger"
+  },
+  "hot dog": {
+    "src": "word-art/1F32D.svg",
+    "alt": "热狗",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F32D.svg",
+    "sourceAnnotation": "hot dog"
+  },
+  "sandwich": {
+    "src": "word-art/1F96A.svg",
+    "alt": "三明治",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F96A.svg",
+    "sourceAnnotation": "sandwich"
+  },
+  "cupcake": {
+    "src": "word-art/1F9C1.svg",
+    "alt": "纸杯蛋糕",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Dunkel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9C1.svg",
+    "sourceAnnotation": "cupcake"
+  },
+  "cake": {
+    "src": "word-art/1F370.svg",
+    "alt": "蛋糕",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F370.svg",
+    "sourceAnnotation": "shortcake"
+  },
+  "candy": {
+    "src": "word-art/1F36C.svg",
+    "alt": "糖果",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F36C.svg",
+    "sourceAnnotation": "candy"
+  },
+  "chocolate": {
+    "src": "word-art/1F36B.svg",
+    "alt": "巧克力",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F36B.svg",
+    "sourceAnnotation": "chocolate bar"
+  },
+  "dumpling": {
+    "src": "word-art/1F95F.svg",
+    "alt": "饺子",
+    "license": "CC BY-SA 4.0",
+    "author": "Ricarda Krejci",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F95F.svg",
+    "sourceAnnotation": "dumpling"
+  },
+  "sushi": {
+    "src": "word-art/1F363.svg",
+    "alt": "寿司",
+    "license": "CC BY-SA 4.0",
+    "author": "Miriam Vollmeier",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F363.svg",
+    "sourceAnnotation": "sushi"
+  },
+  "salad": {
+    "src": "word-art/1F957.svg",
+    "alt": "蔬菜沙拉",
+    "license": "CC BY-SA 4.0",
+    "author": "Ricarda Krejci",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F957.svg",
+    "sourceAnnotation": "green salad"
+  },
+  "chopsticks": {
+    "src": "word-art/1F962.svg",
+    "alt": "筷子",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F962.svg",
+    "sourceAnnotation": "chopsticks"
+  },
+  "cat": {
+    "src": "word-art/1F408.svg",
+    "alt": "猫",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F408.svg",
+    "sourceAnnotation": "cat"
+  },
+  "dog": {
+    "src": "word-art/1F415.svg",
+    "alt": "狗",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F415.svg",
+    "sourceAnnotation": "dog"
+  },
+  "duck": {
+    "src": "word-art/1F986.svg",
+    "alt": "鸭子",
+    "license": "CC BY-SA 4.0",
+    "author": "Selina Bauder",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F986.svg",
+    "sourceAnnotation": "duck"
+  },
+  "bird": {
+    "src": "word-art/1F426.svg",
+    "alt": "鸟",
+    "license": "CC BY-SA 4.0",
+    "author": "Selina Bauder",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F426.svg",
+    "sourceAnnotation": "bird"
+  },
+  "bear": {
+    "src": "word-art/1F43B.svg",
+    "alt": "熊",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F43B.svg",
+    "sourceAnnotation": "bear"
+  },
+  "tiger": {
+    "src": "word-art/1F405.svg",
+    "alt": "老虎",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F405.svg",
+    "sourceAnnotation": "tiger"
+  },
+  "lion": {
+    "src": "word-art/1F981.svg",
+    "alt": "狮子",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F981.svg",
+    "sourceAnnotation": "lion"
+  },
+  "elephant": {
+    "src": "word-art/1F418.svg",
+    "alt": "大象",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F418.svg",
+    "sourceAnnotation": "elephant"
+  },
+  "monkey": {
+    "src": "word-art/1F412.svg",
+    "alt": "猴子",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F412.svg",
+    "sourceAnnotation": "monkey"
+  },
+  "panda": {
+    "src": "word-art/1F43C.svg",
+    "alt": "熊猫",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F43C.svg",
+    "sourceAnnotation": "panda"
+  },
+  "rabbit": {
+    "src": "word-art/1F407.svg",
+    "alt": "兔子",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F407.svg",
+    "sourceAnnotation": "rabbit"
+  },
+  "giraffe": {
+    "src": "word-art/1F992.svg",
+    "alt": "长颈鹿",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F992.svg",
+    "sourceAnnotation": "giraffe"
+  },
+  "zebra": {
+    "src": "word-art/1F993.svg",
+    "alt": "斑马",
+    "license": "CC BY-SA 4.0",
+    "author": "Sofie Ascherl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F993.svg",
+    "sourceAnnotation": "zebra"
+  },
+  "snake": {
+    "src": "word-art/1F40D.svg",
+    "alt": "蛇",
+    "license": "CC BY-SA 4.0",
+    "author": "Selina Bauder",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F40D.svg",
+    "sourceAnnotation": "snake"
+  },
+  "fish": {
+    "src": "word-art/1F41F.svg",
+    "alt": "鱼",
+    "license": "CC BY-SA 4.0",
+    "author": "Selina Bauder",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F41F.svg",
+    "sourceAnnotation": "fish"
+  },
+  "moon": {
+    "src": "word-art/1F319.svg",
+    "alt": "月亮",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F319.svg",
+    "sourceAnnotation": "crescent moon"
+  },
+  "sun": {
+    "src": "word-art/2600.svg",
+    "alt": "太阳",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2600.svg",
+    "sourceAnnotation": "sun"
+  },
+  "rainbow": {
+    "src": "word-art/1F308.svg",
+    "alt": "彩虹",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F308.svg",
+    "sourceAnnotation": "rainbow"
+  },
+  "snowman": {
+    "src": "word-art/2603.svg",
+    "alt": "雪人",
+    "license": "CC BY-SA 4.0",
+    "author": "Lois Proksch",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2603.svg",
+    "sourceAnnotation": "snowman"
+  },
+  "snowy": {
+    "src": "word-art/1F328.svg",
+    "alt": "下雪的天气",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F328.svg",
+    "sourceAnnotation": "cloud with snow"
+  },
+  "flower": {
+    "src": "word-art/1F33C.svg",
+    "alt": "花",
+    "license": "CC BY-SA 4.0",
+    "author": "Hilda Kalyoncu",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F33C.svg",
+    "sourceAnnotation": "blossom"
+  },
+  "tree": {
+    "src": "word-art/1F333.svg",
+    "alt": "树",
+    "license": "CC BY-SA 4.0",
+    "author": "Hilda Kalyoncu",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F333.svg",
+    "sourceAnnotation": "deciduous tree"
+  },
+  "mountain": {
+    "src": "word-art/26F0.svg",
+    "alt": "山",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/26F0.svg",
+    "sourceAnnotation": "mountain"
+  },
+  "rock": {
+    "src": "word-art/1FAA8.svg",
+    "alt": "岩石",
+    "license": "CC BY-SA 4.0",
+    "author": "Liz Bravo",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1FAA8.svg",
+    "sourceAnnotation": "rock"
+  },
+  "stone": {
+    "src": "word-art/1FAA8.svg",
+    "alt": "石头",
+    "license": "CC BY-SA 4.0",
+    "author": "Liz Bravo",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1FAA8.svg",
+    "sourceAnnotation": "rock"
+  },
+  "fire": {
+    "src": "word-art/1F525.svg",
+    "alt": "火焰",
+    "license": "CC BY-SA 4.0",
+    "author": "Guemil Project",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F525.svg",
+    "sourceAnnotation": "fire"
+  },
+  "football": {
+    "src": "word-art/26BD.svg",
+    "alt": "足球",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/26BD.svg",
+    "sourceAnnotation": "soccer ball"
+  },
+  "basketball": {
+    "src": "word-art/1F3C0.svg",
+    "alt": "篮球",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3C0.svg",
+    "sourceAnnotation": "basketball"
+  },
+  "baseball": {
+    "src": "word-art/26BE.svg",
+    "alt": "棒球",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/26BE.svg",
+    "sourceAnnotation": "baseball"
+  },
+  "kite": {
+    "src": "word-art/1FA81.svg",
+    "alt": "风筝",
+    "license": "CC BY-SA 4.0",
+    "author": "Evelyn Soos",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1FA81.svg",
+    "sourceAnnotation": "kite"
+  },
+  "balloon": {
+    "src": "word-art/1F388.svg",
+    "alt": "气球",
+    "license": "CC BY-SA 4.0",
+    "author": "Laura Humpfer",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F388.svg",
+    "sourceAnnotation": "balloon"
+  },
+  "bicycle": {
+    "src": "word-art/1F6B2.svg",
+    "alt": "自行车",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6B2.svg",
+    "sourceAnnotation": "bicycle"
+  },
+  "taxi": {
+    "src": "word-art/1F695.svg",
+    "alt": "出租车",
+    "license": "CC BY-SA 4.0",
+    "author": "Ronja Bäurlen",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F695.svg",
+    "sourceAnnotation": "taxi"
+  },
+  "robot": {
+    "src": "word-art/1F916.svg",
+    "alt": "机器人",
+    "license": "CC BY-SA 4.0",
+    "author": "Mariella Steeb",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F916.svg",
+    "sourceAnnotation": "robot"
+  },
+  "camera": {
+    "src": "word-art/1F4F7.svg",
+    "alt": "照相机",
+    "license": "CC BY-SA 4.0",
+    "author": "Sina Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4F7.svg",
+    "sourceAnnotation": "camera"
+  },
+  "computer": {
+    "src": "word-art/1F5A5.svg",
+    "alt": "电脑",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F5A5.svg",
+    "sourceAnnotation": "desktop computer"
+  },
+  "television": {
+    "src": "word-art/1F4FA.svg",
+    "alt": "电视机",
+    "license": "CC BY-SA 4.0",
+    "author": "Sina Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4FA.svg",
+    "sourceAnnotation": "television"
+  },
+  "radio": {
+    "src": "word-art/1F4FB.svg",
+    "alt": "收音机",
+    "license": "CC BY-SA 4.0",
+    "author": "Sina Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4FB.svg",
+    "sourceAnnotation": "radio"
+  },
+  "phone": {
+    "src": "word-art/1F4F1.svg",
+    "alt": "手机",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4F1.svg",
+    "sourceAnnotation": "mobile phone"
+  },
+  "telephone": {
+    "src": "word-art/260E.svg",
+    "alt": "电话机",
+    "license": "CC BY-SA 4.0",
+    "author": "Kai Wanschura",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/260E.svg",
+    "sourceAnnotation": "telephone"
+  },
+  "cd": {
+    "src": "word-art/1F4BF.svg",
+    "alt": "光盘",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4BF.svg",
+    "sourceAnnotation": "optical disk"
+  },
+  "dvd": {
+    "src": "word-art/1F4C0.svg",
+    "alt": "DVD光盘",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4C0.svg",
+    "sourceAnnotation": "dvd"
+  },
+  "book": {
+    "src": "word-art/1F4D6.svg",
+    "alt": "打开的书",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4D6.svg",
+    "sourceAnnotation": "open book"
+  },
+  "pencil": {
+    "src": "word-art/270F.svg",
+    "alt": "铅笔",
+    "license": "CC BY-SA 4.0",
+    "author": "Rana Cakir",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/270F.svg",
+    "sourceAnnotation": "pencil"
+  },
+  "pen": {
+    "src": "word-art/1F58A.svg",
+    "alt": "钢笔",
+    "license": "CC BY-SA 4.0",
+    "author": "Rana Cakir",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F58A.svg",
+    "sourceAnnotation": "pen"
+  },
+  "crayon": {
+    "src": "word-art/1F58D.svg",
+    "alt": "蜡笔",
+    "license": "CC BY-SA 4.0",
+    "author": "Rana Cakir",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F58D.svg",
+    "sourceAnnotation": "crayon"
+  },
+  "ruler": {
+    "src": "word-art/1F4CF.svg",
+    "alt": "直尺",
+    "license": "CC BY-SA 4.0",
+    "author": "Sina Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4CF.svg",
+    "sourceAnnotation": "straight ruler"
+  },
+  "bookmark": {
+    "src": "word-art/1F516.svg",
+    "alt": "书签",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F516.svg",
+    "sourceAnnotation": "bookmark"
+  },
+  "paper": {
+    "src": "word-art/1F4C4.svg",
+    "alt": "纸张",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4C4.svg",
+    "sourceAnnotation": "page facing up"
+  },
+  "map": {
+    "src": "word-art/1F5FA.svg",
+    "alt": "地图",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F5FA.svg",
+    "sourceAnnotation": "world map"
+  },
+  "letter": {
+    "src": "word-art/2709.svg",
+    "alt": "装在信封里的信",
+    "license": "CC BY-SA 4.0",
+    "author": "Marius Schnabel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2709.svg",
+    "sourceAnnotation": "envelope"
+  },
+  "door": {
+    "src": "word-art/1F6AA.svg",
+    "alt": "门",
+    "license": "CC BY-SA 4.0",
+    "author": "Lisa Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6AA.svg",
+    "sourceAnnotation": "door"
+  },
+  "bed": {
+    "src": "word-art/1F6CF.svg",
+    "alt": "床",
+    "license": "CC BY-SA 4.0",
+    "author": "Lisa Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6CF.svg",
+    "sourceAnnotation": "bed"
+  },
+  "chair": {
+    "src": "word-art/1FA91.svg",
+    "alt": "椅子",
+    "license": "CC BY-SA 4.0",
+    "author": "Sam Eckert",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1FA91.svg",
+    "sourceAnnotation": "chair"
+  },
+  "toilet": {
+    "src": "word-art/1F6BD.svg",
+    "alt": "马桶",
+    "license": "CC BY-SA 4.0",
+    "author": "Lisa Schulz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F6BD.svg",
+    "sourceAnnotation": "toilet"
+  },
+  "school": {
+    "src": "word-art/1F3EB.svg",
+    "alt": "学校",
+    "license": "CC BY-SA 4.0",
+    "author": "Niklas Kuntz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3EB.svg",
+    "sourceAnnotation": "school"
+  },
+  "factory": {
+    "src": "word-art/1F3ED.svg",
+    "alt": "工厂",
+    "license": "CC BY-SA 4.0",
+    "author": "Martin Wehl",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3ED.svg",
+    "sourceAnnotation": "factory"
+  },
+  "bell": {
+    "src": "word-art/1F514.svg",
+    "alt": "铃铛",
+    "license": "CC BY-SA 4.0",
+    "author": "Rana Cakir",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F514.svg",
+    "sourceAnnotation": "bell"
+  },
+  "umbrella": {
+    "src": "word-art/2602.svg",
+    "alt": "雨伞",
+    "license": "CC BY-SA 4.0",
+    "author": "Vanessa Boutzikoudi",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2602.svg",
+    "sourceAnnotation": "umbrella"
+  },
+  "lantern": {
+    "src": "word-art/1F3EE.svg",
+    "alt": "红灯笼",
+    "license": "CC BY-SA 4.0",
+    "author": "Abby Esquivel",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3EE.svg",
+    "sourceAnnotation": "red paper lantern"
+  },
+  "cap": {
+    "src": "word-art/1F9E2.svg",
+    "alt": "带帽檐的帽子",
+    "license": "CC BY-SA 4.0",
+    "author": "Jennifer Pätzold",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9E2.svg",
+    "sourceAnnotation": "billed cap"
+  },
+  "shorts": {
+    "src": "word-art/1FA73.svg",
+    "alt": "短裤",
+    "license": "CC BY-SA 4.0",
+    "author": "Sam Eckert",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1FA73.svg",
+    "sourceAnnotation": "shorts"
+  },
+  "shoe": {
+    "src": "word-art/1F45F.svg",
+    "alt": "鞋",
+    "license": "CC BY-SA 4.0",
+    "author": "Jonas Roßner",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F45F.svg",
+    "sourceAnnotation": "running shoe"
+  },
+  "ear": {
+    "src": "word-art/1F442.svg",
+    "alt": "耳朵",
+    "license": "CC BY-SA 4.0",
+    "author": "Julian Grüneberg",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F442.svg",
+    "sourceAnnotation": "ear"
+  },
+  "eye": {
+    "src": "word-art/1F441.svg",
+    "alt": "眼睛",
+    "license": "CC BY-SA 4.0",
+    "author": "Julian Grüneberg",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F441.svg",
+    "sourceAnnotation": "eye"
+  },
+  "nose": {
+    "src": "word-art/1F443.svg",
+    "alt": "鼻子",
+    "license": "CC BY-SA 4.0",
+    "author": "Julian Grüneberg",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F443.svg",
+    "sourceAnnotation": "nose"
+  },
+  "mouth": {
+    "src": "word-art/1F444.svg",
+    "alt": "嘴",
+    "license": "CC BY-SA 4.0",
+    "author": "Julian Grüneberg",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F444.svg",
+    "sourceAnnotation": "mouth"
+  },
+  "leg": {
+    "src": "word-art/1F9B5.svg",
+    "alt": "腿",
+    "license": "CC BY-SA 4.0",
+    "author": "Laura Schießer",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9B5.svg",
+    "sourceAnnotation": "leg"
+  },
+  "foot": {
+    "src": "word-art/1F9B6.svg",
+    "alt": "脚",
+    "license": "CC BY-SA 4.0",
+    "author": "Daniel Utz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9B6.svg",
+    "sourceAnnotation": "foot"
+  },
+  "baby": {
+    "src": "word-art/1F476.svg",
+    "alt": "婴儿",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F476.svg",
+    "sourceAnnotation": "baby"
+  },
+  "man": {
+    "src": "word-art/1F468.svg",
+    "alt": "成年男子",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F468.svg",
+    "sourceAnnotation": "man"
+  },
+  "child": {
+    "src": "word-art/1F9D2.svg",
+    "alt": "儿童",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9D2.svg",
+    "sourceAnnotation": "child"
+  },
+  "kid": {
+    "src": "word-art/1F9D2.svg",
+    "alt": "孩子",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9D2.svg",
+    "sourceAnnotation": "child"
+  },
+  "student": {
+    "src": "word-art/1F9D1-200D-1F393.svg",
+    "alt": "学生",
+    "license": "CC BY-SA 4.0",
+    "author": "Benedikt Groß",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9D1-200D-1F393.svg",
+    "sourceAnnotation": "student"
+  },
+  "firefighter": {
+    "src": "word-art/1F9D1-200D-1F692.svg",
+    "alt": "消防员",
+    "license": "CC BY-SA 4.0",
+    "author": "Benedikt Groß",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9D1-200D-1F692.svg",
+    "sourceAnnotation": "firefighter"
+  },
+  "run": {
+    "src": "word-art/1F3C3.svg",
+    "alt": "正在跑步的人",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3C3.svg",
+    "sourceAnnotation": "person running"
+  },
+  "swim": {
+    "src": "word-art/1F3CA.svg",
+    "alt": "正在游泳的人",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3CA.svg",
+    "sourceAnnotation": "person swimming"
+  },
+  "ski": {
+    "src": "word-art/26F7.svg",
+    "alt": "正在滑雪的人",
+    "license": "CC BY-SA 4.0",
+    "author": "Johanna Wellnitz",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/26F7.svg",
+    "sourceAnnotation": "skier"
+  },
+  "right": {
+    "src": "word-art/27A1.svg",
+    "alt": "向右的箭头",
+    "license": "CC BY-SA 4.0",
+    "author": "Guemil Project",
+    "source": "https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/27A1.svg",
+    "sourceAnnotation": "right arrow"
+  }
+}

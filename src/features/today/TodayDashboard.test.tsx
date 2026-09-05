@@ -33,7 +33,7 @@ describe('TodayDashboard', () => {
     expect(screen.getByRole('heading', { name: '今天的学习' })).toBeVisible()
     expect(await screen.findByRole('heading', { name: 'apple' })).toBeVisible()
     expect(screen.getByText('/ˈæp.əl/', { selector: '.today-dashboard__ipa--uk' })).toBeVisible()
-    expect(screen.getByText('苹果')).toBeVisible()
+    expect(screen.getByText('苹果', { selector: '.today-dashboard__meaning' })).toBeVisible()
     expect(screen.getByRole('button', { name: '开始学习' })).toBeEnabled()
   })
 

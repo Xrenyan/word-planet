@@ -220,7 +220,7 @@ describe('PlanetGuardianGame', () => {
     expect(screen.getByRole('heading', { name: '三层护盾已点亮' })).toHaveFocus()
     expect(screen.getByText('首次答对 1 / 3 层')).toBeVisible()
     expect(screen.getByText(/再看看：/)).toHaveTextContent(spellingWord.term)
-    expect(screen.getByText(/真实作答已保存在此设备/)).toBeVisible()
+    expect(screen.getByText(/“首次答对”是本局表现/)).toBeVisible()
   })
 
   it('reports unsupported speech honestly, exposes a real fallback, and keeps audio stage completable', async () => {
@@ -251,8 +251,8 @@ describe('PlanetGuardianGame', () => {
 
     await user.click(screen.getByRole('button', { name: '播放守护关英式发音' }))
 
-    expect(audioLoader).toHaveBeenCalledWith(audioTarget, 'en-GB')
-    expect(audioPlayer).toHaveBeenCalledWith('blob:guardian-uk')
+    expect(audioLoader).toHaveBeenCalledWith(audioTarget, 'en-GB', demoWords.find(word => word.id === audioTarget)!.term)
+    expect(audioPlayer).toHaveBeenCalledWith('blob:guardian-uk', expect.objectContaining({ signal: expect.any(AbortSignal) }))
     expect(await screen.findByText('英式发音播放完成 · 本机语音。')).toBeVisible()
   })
 

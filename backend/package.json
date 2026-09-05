@@ -1,0 +1,15 @@
+{
+  "name": "word-planet-sync",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild worker.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/server/index.js",
+    "db:generate": "drizzle-kit generate"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
+    "esbuild": "^0.28.2"
+  }
+}

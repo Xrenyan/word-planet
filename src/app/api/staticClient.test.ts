@@ -3,15 +3,44 @@ import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { LocalProgressRepository } from '../progress/LocalProgressRepository'
 import { createStaticWordPlanetApi } from './staticClient'
+import { BooksResponseSchema, WordsResponseSchema } from '../../../shared/contracts'
 
 describe('static curriculum client', () => {
-  it('ships all eight books and exactly 1175 source-matched words', () => {
+  it('isolates cancellation between concurrent catalog readers', async () => {
+    let respond!: (response: Response) => void
+    const fetcher = vi.fn(() => new Promise<Response>(resolve => { respond = resolve }))
+    const api = createStaticWordPlanetApi({ fetcher: fetcher as typeof fetch })
+    const controller = new AbortController()
+    const first = api.getBooks(controller.signal)
+    const second = api.getBooks()
+    const rejected = expect(first).rejects.toMatchObject({ name: 'AbortError' })
+    controller.abort()
+    respond(new Response(JSON.stringify({ books: [] })))
+    await rejected
+    await expect(second).resolves.toEqual({ books: [] })
+    expect(fetcher).toHaveBeenCalledOnce()
+  })
+  it('replaces grade four in the same eight-book catalog and preserves the photo unit boundaries', () => {
     const catalog = JSON.parse(readFileSync(resolve('public/data/catalog.json'), 'utf8')) as { books: Array<{ label: string; availableWordCount: number }> }
     expect(catalog.books.map((book) => book.label)).toEqual([
       '三年级上册', '三年级下册', '四年级上册', '四年级下册',
       '五年级上册', '五年级下册', '六年级上册', '六年级下册',
     ])
-    expect(catalog.books.reduce((total, book) => total + book.availableWordCount, 0)).toBe(1175)
+    expect(catalog.books.reduce((total, book) => total + book.availableWordCount, 0)).toBe(1195)
+    const photo = WordsResponseSchema.parse(JSON.parse(readFileSync(resolve('public/data/books/fltrp-nse-2022-g4-upper.json'), 'utf8')))
+    expect([1,2,3,4,5,6].map(unit => photo.words.filter(word => word.unit === unit).length)).toEqual([31,40,27,19,26,22])
+    expect(photo.words[0].term).toBe('sport')
+    expect(photo.words.at(-1)?.term).toBe('aunt')
+    expect(photo.words.every(word => word.sourceConfidence === 'user-photo')).toBe(true)
+  })
+
+  it('validates every bundled book with the same contract as the running application', () => {
+    const { books } = BooksResponseSchema.parse(JSON.parse(readFileSync(resolve('public/data/catalog.json'), 'utf8')))
+    for (const book of books) {
+      const content = WordsResponseSchema.parse(JSON.parse(readFileSync(resolve(`public/data/books/${book.id}.json`), 'utf8')))
+      expect(content.words).toHaveLength(book.availableWordCount!)
+      for (const word of content.words) if (word.image.src.startsWith('word-art/')) expect(readFileSync(resolve('public',word.image.src), 'utf8')).toContain('<svg')
+    }
   })
 
   it('loads a book beneath the configured Pages base and filters by unit', async () => {
@@ -49,6 +78,6 @@ describe('static curriculum client', () => {
 
     const review = await api.getReview?.('local-child')
 
-    expect(review?.items).toEqual([{ word, misses: 1, correct: 0, weakness: 1, lastAttemptAt: 100 }])
+    expect(review?.items).toEqual([{ word, misses: 1, correct: 0, weakness: 1, lastAttemptAt: 100, dueAt: 100 }])
   })
 })

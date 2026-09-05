@@ -38,6 +38,24 @@ function createStream() {
 }
 
 describe('createRecorder', () => {
+  it('releases a stopped microphone and settles when a browser never delivers the final stop event', async () => {
+    vi.useFakeTimers()
+    FakeMediaRecorder.autoStop = false
+    try {
+      const { stream, stop } = createStream()
+      const recorder = createRecorder(stream, { MediaRecorder: FakeMediaRecorder, Blob, createObjectURL: () => 'blob:test', revokeObjectURL: vi.fn() })
+      recorder.start()
+      let settled = false
+      const pending = recorder.stop().then(() => { settled = true }, () => { settled = true })
+      await vi.advanceTimersByTimeAsync(5000)
+      expect(settled).toBe(true)
+      expect(stop).toHaveBeenCalled()
+      await pending
+    } finally {
+      FakeMediaRecorder.autoStop = true
+      vi.useRealTimers()
+    }
+  })
   it('keeps a recording local, replaces old URLs, and releases tracks and URLs on disposal', async () => {
     const { stream, stop } = createStream()
     const createObjectURL = vi.fn()

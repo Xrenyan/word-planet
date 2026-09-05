@@ -155,7 +155,7 @@ describe('StarDeliveryGame', () => {
     expect(screen.getByRole('heading', { name: '速递完成' })).toBeVisible()
     expect(screen.getByText('全部 2 单都已送达。')).toBeVisible()
     expect(screen.getByText('答对 1 / 作答 2')).toBeVisible()
-    expect(screen.getByText(/已经保存在此设备/)).toBeVisible()
+    expect(screen.getByText(/这是本局实际作答结果/)).toBeVisible()
   })
 
   it('atomically resets to an unstarted session when mounted configuration changes', async () => {

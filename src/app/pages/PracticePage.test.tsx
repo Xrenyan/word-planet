@@ -19,6 +19,37 @@ const nextWord = {
 }
 
 describe('PracticePage verified session', () => {
+  it('finishes a short group and retests only the words missed in that group', async () => {
+    const user = userEvent.setup()
+    const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: 'g3-upper', words: [word, nextWord] }) }
+    render(<PracticePage word={word} api={api} />)
+    await screen.findByText('第 1 / 2 词')
+    await user.click(screen.getByRole('button', { name: '看义拼写' }))
+    await user.type(screen.getByLabelText('根据中文写英文'), 'pear{enter}')
+    await user.clear(screen.getByLabelText('根据中文写英文'))
+    await user.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
+    await screen.findByText('第 2 / 2 词')
+    await user.type(screen.getByLabelText('根据中文写英文'), 'cat{enter}')
+    expect(await screen.findByRole('heading', { name: '这一组完成啦！' })).toBeVisible()
+    expect(screen.getByText('首次答对 1 / 2')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: '再练错词（1）' }))
+    expect(screen.getByText('第 1 / 1 词')).toBeVisible()
+    expect(screen.getByRole('heading', { name: '练习 · 苹果' })).toBeVisible()
+  })
+
+  it('starts the next group without repeating the first eight words', async () => {
+    const user = userEvent.setup()
+    const words = Array.from({length: 10}, (_, i) => ({...word, id: `word-${i}`, term: `word${i}`, meaningZh: `词${i}`}))
+    const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: 'g3-upper', words }) }
+    render(<PracticePage word={words[0]} api={api} />)
+    await screen.findByText('第 1 / 8 词')
+    for (let i = 0; i < 7; i++) await user.click(screen.getByRole('button', { name: '下一个单词' }))
+    await user.click(screen.getByRole('button', { name: '完成这一组' }))
+    await user.click(screen.getByRole('button', { name: '继续下一组' }))
+    expect(screen.getByRole('heading', { name: '学习 · 词8' })).toBeVisible()
+    expect(screen.getByText('第 1 / 2 词')).toBeVisible()
+  })
+
   it('starts with the actual word visible and keeps every practice mode reachable', async () => {
     const user = userEvent.setup()
     const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: 'g3-upper', words: [word, nextWord] }) }
@@ -33,9 +64,10 @@ describe('PracticePage verified session', () => {
     await user.click(screen.getByRole('button', { name: '听音选词' }))
     expect(screen.getByText('听发音，选择正确的中文意思')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '选择中文：猫' }))
-    expect(screen.getByRole('heading', { name: '练习 · 苹果' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: '听音挑战' })).toBeVisible()
+    expect(screen.queryByText(word.ipaUk)).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '选择中文：苹果' }))
-    expect(await screen.findByRole('heading', { name: '练习 · 猫' }, { timeout: 1500 })).toBeVisible()
+    expect(await screen.findByText('第 2 / 2 词', {}, { timeout: 1500 })).toBeVisible()
     expect(record.mock.calls.map(([event]) => ({ outcome: event.outcome, source: event.source }))).toEqual([
       { outcome: 'missed', source: 'recognition' },
       { outcome: 'correct', source: 'recognition' },
@@ -50,6 +82,7 @@ describe('PracticePage verified session', () => {
     await screen.findByText('第 1 / 2 词')
 
     await user.click(screen.getByRole('button', { name: '跟读练习' }))
+    expect(screen.getByText('apple')).toBeVisible()
     expect(screen.getByText('完成跟读后继续；没有真实评测时不会生成分数。')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '跟读完成，下一词' }))
     expect(screen.getByRole('heading', { name: '练习 · 猫' })).toBeVisible()

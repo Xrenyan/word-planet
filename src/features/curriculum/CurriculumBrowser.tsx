@@ -36,7 +36,7 @@ export function CurriculumBrowser({ api, onSelectBook }: CurriculumBrowserProps)
       <header>
         <div>
           <h2 id="curriculum-browser-title" data-route-heading tabIndex={-1}>教材</h2>
-          <p>外研社《英语（新标准）》三年级起点 · 八册公开词表已接入 · 版本状态逐册标注</p>
+          <p>外研社三年级起点 · 四上已按教材照片更新 · 各册版本如实标注</p>
         </div>
         <span><ShieldCheck aria-hidden="true" weight="fill" />来源状态实时显示</span>
       </header>
@@ -56,7 +56,9 @@ export function CurriculumBrowser({ api, onSelectBook }: CurriculumBrowserProps)
               <span className="curriculum-browser__grade">{book.grade}</span>
               <div>
                 <h3>{book.label}</h3>
-                <p>{book.status === 'verified' ? `${count} 个正式核验词` : available ? `${count} 个公开来源匹配词 · 待教材页复核` : '等待来源核验'}</p>
+                {book.editionLabel && <strong className="edition-label">{book.editionLabel}</strong>}
+                <p>{book.editionLabel?.includes('照片核对') ? `${count} 个教材照片核对词` : book.status === 'verified' ? `${count} 个正式核验词` : available ? `${count} 个公开来源匹配词 · 待教材页复核` : '等待来源核验'}</p>
+                {book.editionNote && <details><summary>版本说明</summary><p>{book.editionNote}</p></details>}
               </div>
               <Pressable
                 aria-label={available ? `打开${book.label}，${count}个词` : `${book.label} 等待来源核验`}

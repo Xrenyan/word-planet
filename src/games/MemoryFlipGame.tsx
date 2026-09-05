@@ -107,7 +107,7 @@ function MemoryFlipSession({ deck, scope, onReturnToLearning, onBackToHub, onAtt
         <p className="demo-disclaimer">{gameScopeLabel(scope)}</p>
         <h2 ref={titleRef} id="memory-game-title" data-route-heading tabIndex={-1}>翻翻乐完成</h2>
         <p className="memory-game__result">完成 {matchedWordIds.length} / {wordCount} 组</p>
-        <p>这是本局实际配对结果，已经保存在此设备。</p>
+        <p>这是本局实际配对结果，可以回到学习继续巩固。</p>
         <button className="memory-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
       </section>
     )
@@ -128,6 +128,8 @@ function MemoryFlipSession({ deck, scope, onReturnToLearning, onBackToHub, onAtt
       <div className="memory-game__deck" aria-label="记忆翻翻乐卡片">
         {deck.map((card, index) => {
           const matched = matchedWordIds.includes(card.wordId)
+          const meaningCard = deck.find(item => item.wordId === card.wordId && item.kind === 'meaning')
+          const meaning = meaningCard?.kind === 'meaning' ? meaningCard.text : '词义配图'
           const revealed = matched || selectedIds.includes(card.id)
           return (
             <button
@@ -145,7 +147,7 @@ function MemoryFlipSession({ deck, scope, onReturnToLearning, onBackToHub, onAtt
               <span className="memory-game__card-inner">
                 <span className="memory-game__card-front" aria-hidden="true"><CardsThree weight="fill" /></span>
                 <span className="memory-game__card-back">
-                  {revealed && (card.kind === 'image' ? <WordArtwork image={card.image} term={card.image.alt} wordId={card.wordId} /> : <span>{card.text}</span>)}
+                  {revealed && (card.kind === 'image' ? <WordArtwork revealTerm={false} meaningZh={meaning} image={card.image} term="" wordId={card.wordId} /> : <span>{card.text}</span>)}
                   {matched && <small>已配对</small>}
                 </span>
               </span>

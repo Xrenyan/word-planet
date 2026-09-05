@@ -1,0 +1,46 @@
+Pronunciation reference data has separately attributed sources.
+
+1. Qwerty Learner public dictionary datasets, RealKai42 and contributors.
+Project: https://github.com/RealKai42/qwerty-learner
+License supplied by the project: GNU GPL v3 (see QWERTY-GPL-3.0.txt).
+Individual source files are recorded in each entry's source and referenceDataset.
+Changes: selected only pronunciation fields matching this project's vocabulary;
+normalized visible separators/stress marks. Original transcription conventions
+are preserved, including KK symbols in some US entries. These are dictionary
+reference transcriptions, not official textbook phonetics.
+
+2. English Wiktionary and French Wiktionnaire contributors, CC BY-SA 4.0.
+License: https://creativecommons.org/licenses/by-sa/4.0/
+Source: each term links to its Wiktionary page and stores the retrieved revision.
+Full contributor history: follow “View history” on each linked source page.
+Changes: English IPA extracted from pronunciation sections, grouped by the
+original regional qualifiers (UK/RP, US/General American, or unqualified common).
+The English-language good job entry in French Wiktionnaire was checked manually:
+https://fr.wiktionary.org/w/index.php?title=good_job&oldid=37460291
+It explicitly labels the United Kingdom and United States pronunciations.
+Its backslash delimiters were normalized to forward slashes.
+Missing transcriptions remain null. No generated phonetics. Multiple variants
+are retained; this is a reference dictionary, not official textbook phonetics.
+The Wiktionary-derived subset remains CC BY-SA 4.0 licensed; this statement does
+not relicense the separately sourced Qwerty Learner entries.
+Data: https://github.com/Xrenyan/word-planet/blob/main/content/pronunciations.json
+Extractor: https://github.com/Xrenyan/word-planet/blob/main/scripts/refresh-pronunciations.mjs
+Targeted importer: scripts/import-photo-missing-phonetics.mjs
+Import implementation: scripts/reference-assets.mjs
+
+3. Manually verified pronunciation facts: Cambridge Dictionary (Cambridge
+University Press & Assessment), Collins English Dictionary (HarperCollins), and
+Oxford Learner's Dictionaries (Oxford University Press), and
+SpanishDictionary.com (Dictionary Media Group, Inc., a division of IXL Learning).
+Only short pronunciation transcriptions are recorded, with the exact source
+page and verification date in content/verified-phonetic-supplements.json.
+Context-specific homograph corrections are in content/verified-word-phonetic-overrides.json.
+No dictionary definitions, example sentences or publisher audio are copied.
+These entries are not asserted to be CC BY-SA or GPL licensed.
+SpanishDictionary.com references use each complete phrase's own UK/US
+International Phonetic Alphabet rows, not separate word entries or its SPA row.
+Formatting changes: collapse layout whitespace; enclose transcriptions in slashes;
+for be careful, represent the source's bold stressed syllable with IPA stress
+mark and its syllable hyphen with a dot. Original vowels and consonants are
+preserved; no additional vowel lengths or sentence stress are inferred.
+Publisher explanation: https://help.spanishdict.com/article/158-phonetic-pronunciations

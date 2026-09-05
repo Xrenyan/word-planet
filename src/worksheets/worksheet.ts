@@ -1,11 +1,13 @@
 import { WorksheetSchema, type Worksheet } from '../../shared/contracts'
 import type { WordPlanetApi } from '../app/api/client'
+import { unitLabel } from '../curriculum/labels'
 
 export type WorksheetRequest = {
   bookId: string
   unit: number
   count: number
   seed: string
+  direction?: 'zh-en' | 'en-zh'
   priorityWordIds?: readonly string[]
 }
 
@@ -35,15 +37,15 @@ export async function generateWorksheet(api: WordPlanetApi, request: WorksheetRe
   const selected = ordered.slice(0, request.count)
   return WorksheetSchema.parse({
     id: `local-${request.bookId}-u${request.unit}-${seedNumber(request.seed).toString(36)}`,
-    title: `Unit ${request.unit} 单词默写`,
+    title: `${unitLabel(selected[0])} 单词默写`,
     source: { bookId: request.bookId, unit: request.unit, contentStatus: 'source-matched' },
     questions: selected.map((word, index) => ({
       number: index + 1,
       wordId: word.id,
-      prompt: word.meaningZh,
+      prompt: request.direction === 'en-zh' ? word.term : word.meaningZh,
       blank: '_'.repeat(Math.max(8, Math.min(18, word.term.length + 4))),
       image: word.image,
     })),
-    answers: selected.map((word, index) => ({ number: index + 1, wordId: word.id, answer: word.term })),
+    answers: selected.map((word, index) => ({ number: index + 1, wordId: word.id, answer: request.direction === 'en-zh' ? word.meaningZh : word.term })),
   })
 }

@@ -107,7 +107,7 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
         <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>速递完成</h2>
         <p className="delivery-game__result">答对 {state.correct} / 作答 {state.attempted}</p>
         <p>{state.reason === 'time' ? '时间到，速递已安全停靠。' : `全部 ${schedule.length} 单都已送达。`}</p>
-        <p>这是本局实际作答结果，已经保存在此设备。</p>
+        <p>这是本局实际作答结果，可以回到学习继续巩固。</p>
         <div className="delivery-game__complete-actions">
           <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
           <button className="delivery-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
@@ -151,7 +151,7 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
       </div>
       <div className={`delivery-game__stage${paused ? ' delivery-game__stage--paused' : ''}`} aria-busy={paused}>
         <figure className="delivery-game__target" data-testid="delivery-target" data-word-id={current.target.id}>
-          <WordArtwork wordId={current.target.id} image={current.target.image} term={current.target.term} />
+          <WordArtwork revealTerm={false} wordId={current.target.id} meaningZh={current.target.meaningZh} image={current.target.image} term={current.target.term} />
           <figcaption>把“{current.target.meaningZh}”送到正确的英文站点</figcaption>
         </figure>
         <div className="delivery-game__choices" aria-label="速递英文站点">

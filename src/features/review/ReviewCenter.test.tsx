@@ -24,7 +24,7 @@ describe('ReviewCenter', () => {
 
     expect(await screen.findByRole('heading', { name: '需要再练的单词' })).toBeVisible()
     expect(screen.getByRole('heading', { name: 'apple' })).toBeVisible()
-    expect(screen.getByText('错 2 次 · 对 1 次')).toBeVisible()
+    expect(screen.getByText(/错 2 次 · 对 1 次/)).toBeVisible()
     expect(screen.queryByText(/功能演示/)).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '复习 apple' }))
     expect(onStudy).toHaveBeenCalledWith(apple)

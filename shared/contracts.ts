@@ -18,18 +18,24 @@ export const BookSummarySchema = z.object({
   status: z.enum(['verified', 'source-matched', 'awaiting-source']),
   verifiedWordCount: z.number().int().nonnegative(),
   availableWordCount: z.number().int().nonnegative().optional(),
+  editionLabel: z.string().optional(),
+  editionNote: z.string().optional(),
 })
 
 export const VocabularyWordContractSchema = z.object({
   id: z.string().min(1),
   bookId: z.string().min(1),
   unit: z.number().int().positive(),
+  unitLabel: z.string().optional(),
   order: z.number().int().positive(),
   term: z.string().min(1),
   meaningZh: z.string().min(1),
   ipaUk: z.string().min(1),
   ipaUs: z.string().min(1),
   ipaStatus: z.enum(['official', 'public-source', 'dictionary-api', 'unavailable']).optional(),
+  ipaNote: z.string().optional(),
+  ipaCommon: z.string().optional(),
+  ipaSource: z.string().optional(),
   image: z.object({
     src: z.string().min(1),
     alt: z.string().min(1),
@@ -40,7 +46,7 @@ export const VocabularyWordContractSchema = z.object({
     url: z.string().min(1),
     page: z.number().int().positive(),
   }),
-  sourceConfidence: z.enum(['official', 'public-secondary']).optional(),
+  sourceConfidence: z.enum(['official', 'public-secondary', 'user-photo']).optional(),
   editionNote: z.string().optional(),
 })
 
@@ -82,7 +88,8 @@ export const ReviewItemSchema = z.object({
   word: VocabularyWordContractSchema,
   misses: z.number().int().nonnegative(),
   correct: z.number().int().nonnegative(),
-  weakness: z.number().int().positive(),
+  weakness: z.number().int().nonnegative(),
+  dueAt: z.number().int().nonnegative().optional(),
   lastAttemptAt: z.number().int().nonnegative(),
 })
 

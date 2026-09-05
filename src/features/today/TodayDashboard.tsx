@@ -1,3 +1,4 @@
+import { sourceLabel } from '../../curriculum/sourceLabel'
 import { BookOpen } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import type { VocabularyWordContract } from '../../../shared/contracts'
@@ -5,6 +6,7 @@ import type { WordPlanetApi } from '../../app/api/client'
 import { Pressable } from '../../ui/Pressable'
 import { PronunciationControls } from '../pronunciation/PronunciationControls'
 import { WordArtwork } from '../../learning/WordArtwork'
+import { readBookmark } from '../../learning/bookmark'
 
 type DashboardState =
   | { status: 'loading' }
@@ -36,13 +38,15 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
     setState({ status: 'loading' })
     try {
       const { books } = await api.getBooks(signal)
-      const available = books.find((book) => (book.availableWordCount ?? book.verifiedWordCount) > 0)
+      const bookmark = readBookmark()
+      const availableBooks = books.filter((book) => (book.availableWordCount ?? book.verifiedWordCount) > 0)
+      const available = availableBooks.find(book => book.id === bookmark?.bookId) ?? availableBooks[0]
       if (!available) {
         setState({ status: 'empty' })
         return
       }
       const { words } = await api.getWords(available.id, undefined, signal)
-      let word = words[0]
+      let word = words.find(word => word.id === bookmark?.wordId) ?? words[0]
       let completed = 0
       if (word && api.getProgress) {
         try {
@@ -116,11 +120,11 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
             <p className="today-dashboard__context">当前学习单词</p>
             <h3>{state.word.term}</h3>
             <p className="today-dashboard__meaning">{state.word.meaningZh}</p>
-            <p className="today-dashboard__context">{state.word.sourceConfidence === 'public-secondary' ? '公开来源匹配 · 待教材页复核' : '正式核验词条'}</p>
+            <p className="today-dashboard__context">{sourceLabel(state.word)}</p>
           </div>
           <figure className="today-dashboard__art">
             <WordArtwork image={state.word.image} term={state.word.term} meaningZh={state.word.meaningZh} wordId={state.word.id} />
-            <figcaption>{state.word.image.license.startsWith('original-') ? '词星球原创记忆配图' : '记忆配图 · 来源状态已记录'}</figcaption>
+            <figcaption>{state.word.image.src.startsWith('word-art/') ? 'OpenMoji 词义配图' : state.word.image.src.startsWith('https:') ? '公开来源配图 · 权利归原来源' : '词义联想提示'}</figcaption>
           </figure>
           <div className="today-dashboard__controls">
             <PronunciationControls word={state.word} />

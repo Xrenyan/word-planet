@@ -4,23 +4,19 @@ import { describe, expect, it } from 'vitest'
 import { WordArtwork } from './WordArtwork'
 
 describe('WordArtwork', () => {
-  it('falls back to a self-contained local word card when a remote image fails', () => {
+  it('keeps a readable meaning clue when an image fails instead of pretending a generic drawing illustrates the word', () => {
     render(<WordArtwork wordId="g3-apple" meaningZh="苹果" image={{ src: 'https://invalid.example/apple.png', alt: '苹果记忆图', license: 'source' }} term="apple" />)
 
     const image = screen.getByRole('img', { name: '苹果记忆图' })
     fireEvent.error(image)
 
-    expect(image.getAttribute('src')).toMatch(/^data:image\/svg\+xml/)
-    expect(screen.queryByLabelText('图片暂不可用：apple')).not.toBeInTheDocument()
+    expect(screen.getByText('词义联想')).toBeVisible()
+    expect(screen.getByText('苹果')).toBeVisible()
   })
 
-  it('uses a text fallback only if the local data URL cannot render', () => {
-    render(<WordArtwork wordId="g3-apple" meaningZh="苹果" image={{ src: 'https://invalid.example/apple.png', alt: '苹果记忆图', license: 'source' }} term="apple" />)
-
-    const image = screen.getByRole('img', { name: '苹果记忆图' })
-    fireEvent.error(image)
-    fireEvent.error(image)
-
-    expect(screen.getByLabelText('图片暂不可用：apple')).toBeInTheDocument()
+  it('uses the bundled meaning-only illustration during a quiz without leaking the English answer', () => {
+    render(<WordArtwork revealTerm={false} wordId="g3-apple" meaningZh="苹果" image={{ src: 'word-art/apple.svg', alt: '苹果', license: 'CC BY-SA 4.0' }} term="apple" />)
+    expect(screen.getByRole('img', {name: '苹果'})).toHaveAttribute('src',`${import.meta.env.BASE_URL}word-art/apple.svg`)
+    expect(screen.queryByText('apple')).not.toBeInTheDocument()
   })
 })

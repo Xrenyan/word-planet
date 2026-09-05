@@ -1,27 +1,28 @@
-import { ImageSquare } from '@phosphor-icons/react'
+import { Lightbulb } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-
-import { wordFallbackDataUrl } from '../media/wordArtwork'
 
 type WordArtworkProps = {
   image: { src: string; alt: string; license: string }
   term: string
   meaningZh?: string
   wordId?: string
+  revealTerm?: boolean
 }
 
-export function WordArtwork({ image, term, meaningZh = '', wordId }: WordArtworkProps) {
-  const [fallbackStage, setFallbackStage] = useState(0)
-  const hasRemoteArtwork = /^(https?:|data:)/.test(image.src)
-  const localArtwork = wordFallbackDataUrl({ id: wordId ?? term, term, meaningZh })
+export function WordArtwork({ image, term, meaningZh = '', wordId, revealTerm = true }: WordArtworkProps) {
+  const [failed, setFailed] = useState(false)
+  const bundledArtwork = /^word-art\/[\w-]+\.svg$/.test(image.src)
+  const safeRemoteArtwork = /^https:\/\//.test(image.src) && revealTerm
+  const source = bundledArtwork ? `${import.meta.env.BASE_URL}${image.src}` : safeRemoteArtwork ? image.src : null
 
-  useEffect(() => setFallbackStage(0), [image.src, wordId])
+  useEffect(() => setFailed(false), [image.src, wordId])
 
-  if (fallbackStage >= 2) {
+  if (!source || failed) {
     return (
-      <div className="word-artwork__fallback" role="img" aria-label={`图片暂不可用：${term}`}>
-        <ImageSquare aria-hidden="true" weight="duotone" />
-        <span aria-hidden="true">{term.slice(0, 1).toUpperCase()}</span>
+      <div className="word-artwork word-artwork--clue" role="img" aria-label={`词义联想：${meaningZh || '看提示想一想'}`}>
+        <Lightbulb aria-hidden="true" weight="duotone" />
+        <small>词义联想</small>
+        <strong>{meaningZh || '看提示想一想'}</strong>
       </div>
     )
   }
@@ -29,10 +30,11 @@ export function WordArtwork({ image, term, meaningZh = '', wordId }: WordArtwork
   return (
     <img
       className="word-artwork"
-      src={fallbackStage === 0 && hasRemoteArtwork ? image.src : localArtwork}
-      alt={image.alt}
-      style={{ backgroundImage: `url("${localArtwork}")`, backgroundPosition: 'center', backgroundSize: 'cover' }}
-      onError={() => setFallbackStage((stage) => (stage === 0 && hasRemoteArtwork ? 1 : 2))}
+      src={source}
+      alt={bundledArtwork || revealTerm ? image.alt : meaningZh}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
     />
   )
 }

@@ -1,18 +1,43 @@
 import { describe, expect, it, vi } from 'vitest'
 import { assessWordPronunciation, clearWordAudioRequests, loadWordAudio } from './audioClient'
 
+function mp3Bytes() {
+  const bytes = new Uint8Array(256)
+  bytes.set([0xff, 0xf3, 0x84])
+  return bytes.buffer
+}
+
 describe('static pronunciation boundary', () => {
+  it('does not call a cached HTML error page ready-to-play audio', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ terms: { apple: { 'en-GB': 'audio/uk/apple.mp3' } } }) })
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: async () => new TextEncoder().encode('<html>' + 'offline fallback'.repeat(30) + '</html>').buffer })
+    await expect(loadWordAudio('apple', 'en-GB', { fetcher, term: 'apple', baseUrl: '/' }))
+      .resolves.toMatchObject({ status: 'device-fallback', locale: 'en-GB' })
+  })
+  it('uses word-specific past-tense audio before a same-spelling term entry', async () => {
+    const fetcher = vi.fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({
+        words: { 'past-read': { 'en-GB': 'audio/uk/read-past.mp3' } },
+        terms: { read: { 'en-GB': 'audio/uk/read-present.mp3' } },
+      }) })
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: async () => mp3Bytes() })
+    await expect(loadWordAudio('past-read', 'en-GB', { fetcher, term: 'read', baseUrl: '/' }))
+      .resolves.toEqual({ status: 'audio', source: 'local', url: '/audio/uk/read-past.mp3' })
+  })
   it('preloads a bundled accent file and returns its local URL', async () => {
     clearWordAudioRequests()
     const fetcher = vi.fn()
       .mockResolvedValueOnce({ ok: true, json: async () => ({ terms: { apple: { 'en-GB': 'audio/uk/apple.mp3', 'en-US': 'audio/us/apple.mp3' } } }) })
-      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: true, arrayBuffer: async () => mp3Bytes() })
 
     const result = await loadWordAudio('verified-apple', 'en-GB', { fetcher: fetcher as unknown as typeof fetch, term: 'Apple', baseUrl: '/word-planet/' })
 
     expect(result).toEqual({ status: 'audio', source: 'local', url: '/word-planet/audio/uk/apple.mp3' })
-    expect(fetcher).toHaveBeenNthCalledWith(1, '/word-planet/audio/map.json', { headers: { accept: 'application/json' } })
-    expect(fetcher).toHaveBeenNthCalledWith(2, '/word-planet/audio/uk/apple.mp3', { cache: 'force-cache' })
+    expect(fetcher).toHaveBeenNthCalledWith(1, '/word-planet/audio/map.json', expect.objectContaining({ headers: { accept: 'application/json' }, signal: expect.any(AbortSignal) }))
+    expect(fetcher).toHaveBeenNthCalledWith(2, '/word-planet/audio/uk/apple.mp3', expect.objectContaining({ cache: 'force-cache', signal: expect.any(AbortSignal) }))
+    await loadWordAudio('verified-apple', 'en-GB', { fetcher: fetcher as unknown as typeof fetch, term: 'Apple', baseUrl: '/word-planet/' })
+    expect(fetcher).toHaveBeenCalledTimes(2)
   })
 
   it('falls back to the exact device accent when bundled audio cannot be read', async () => {

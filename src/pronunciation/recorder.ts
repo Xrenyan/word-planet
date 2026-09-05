@@ -62,8 +62,11 @@ export function createRecorder(stream: MediaStream, dependencies: RecorderDepend
   let current: LocalRecording | null = null
   let pending: PendingStop | null = null
   let pendingPromise: Promise<LocalRecording | null> | null = null
+  let stopTimeout: ReturnType<typeof setTimeout> | undefined
 
   function settle(result: LocalRecording | null, error?: Error) {
+    clearTimeout(stopTimeout)
+    stopTimeout = undefined
     const operation = pending
     pending = null
     pendingPromise = null
@@ -144,6 +147,11 @@ export function createRecorder(stream: MediaStream, dependencies: RecorderDepend
       if (status !== 'recording' || recorder.state === 'inactive') return Promise.resolve(null)
       const result = new Promise<LocalRecording | null>((resolve, reject) => { pending = { resolve, reject } })
       pendingPromise = result
+      stopTimeout = setTimeout(() => {
+        status = 'error'
+        endStream()
+        settle(null, new Error('recording-timeout'))
+      }, 5000)
       try {
         recorder.stop()
       } catch {

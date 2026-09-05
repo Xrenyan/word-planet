@@ -24,7 +24,7 @@ export function AppShell({ activeRoute, children, onRouteChange, availableWordCo
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" data-route={activeRoute}>
       <button className="skip-link" type="button" onClick={focusMainContent} onKeyDown={handleSkipKeyDown}>
         跳到主要内容
       </button>

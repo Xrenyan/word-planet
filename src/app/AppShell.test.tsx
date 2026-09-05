@@ -72,7 +72,7 @@ describe('App', () => {
     await user.click(screen.getByRole('link', { name: '教材' }))
 
     expect(screen.getByRole('link', { name: '教材' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('heading', { name: '教材' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: '教材' })).toBeVisible()
   })
 
   it('changes active route when a primary navigation link receives Space', async () => {

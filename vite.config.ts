@@ -34,7 +34,7 @@ export const pwaOptions: Partial<VitePWAOptions> = {
       handler: 'CacheFirst',
       options: { cacheName: 'word-planet-remote-art', expiration: { maxEntries: 180, maxAgeSeconds: 2592000 } }
     }, {
-      urlPattern: /\/word-planet\/audio\/.*\.mp3$/,
+      urlPattern: /\/word-planet\/audio\/.*\.mp3(?:\?.*)?$/,
       handler: 'CacheFirst',
       options: { cacheName: 'word-planet-pronunciation', expiration: { maxEntries: 500, maxAgeSeconds: 2592000 } }
     }]
@@ -50,6 +50,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
-    exclude: [...configDefaults.exclude, 'tests/e2e/**']
+    exclude: [...configDefaults.exclude, 'tests/e2e/**', 'scripts/*.test.mjs']
   }
 })

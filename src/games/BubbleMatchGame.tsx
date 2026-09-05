@@ -85,7 +85,7 @@ function BubbleMatchSession({ gameRounds, onReturnToLearning, onBackToHub, onAtt
         <p className="demo-disclaimer">{gameScopeLabel(gameRounds[0].scope)}</p>
         <h2 ref={titleRef} id="bubble-game-title" data-route-heading tabIndex={-1}>本局完成</h2>
         <p className="bubble-game__result">答对 {result.correctRounds} / {result.rounds} 轮</p>
-        <p>你完成了这一轮看图找词小游戏，作答已保存在此设备。</p>
+        <p>你完成了这一轮看图找词小游戏，可以回到学习继续巩固。</p>
         <button className="bubble-game__return" type="button" onClick={onReturnToLearning}>
           回到学习 <ArrowRight aria-hidden="true" weight="bold" />
         </button>
@@ -109,7 +109,7 @@ function BubbleMatchSession({ gameRounds, onReturnToLearning, onBackToHub, onAtt
 
       <div className="bubble-game__stage">
         <figure className="bubble-game__target" data-testid="bubble-target" data-word-id={current.target.id}>
-          <WordArtwork wordId={current.target.id} image={current.target.image} term={current.target.term} />
+          <WordArtwork revealTerm={false} wordId={current.target.id} meaningZh={current.target.meaningZh} image={current.target.image} term={current.target.term} />
           <figcaption>找到和“{current.target.meaningZh}”对应的英文单词</figcaption>
         </figure>
         <div className="bubble-game__choices" aria-label="英文单词泡泡">

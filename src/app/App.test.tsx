@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { WordPlanetApi } from './api/client'
@@ -17,6 +17,26 @@ function api(): WordPlanetApi {
 const recorder = { record: vi.fn().mockResolvedValue('synced' as const), flush: vi.fn().mockResolvedValue(0) }
 
 describe('App enterprise data paths', () => {
+  it('keeps private pairing recovery material in memory when navigating away from the toolbox', async () => {
+    const user = userEvent.setup()
+    render(<App apiClient={api()} progressRecorder={recorder} />)
+    await user.click(screen.getByRole('link', { name: '工具箱' }))
+    const code = await screen.findByLabelText('配对码', { selector:'input' })
+    await user.type(code,'pending-private-recovery-material')
+    await user.click(screen.getByRole('link', { name: '教材' }))
+    expect(await screen.findByRole('heading',{name:'教材'})).toBeVisible()
+    expect(screen.queryByRole('textbox',{name:'配对码'})).not.toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name:'工具箱' }))
+    expect(await screen.findByLabelText('配对码', { selector:'input' })).toHaveValue('pending-private-recovery-material')
+  })
+  it('opens a direct route and follows browser history changes', async () => {
+    window.history.replaceState(null, '', '#mistakes')
+    render(<App apiClient={api()} progressRecorder={recorder} />)
+    expect(await screen.findByRole('heading', { name: '需要再练的单词' })).toBeVisible()
+    window.history.replaceState(null, '', '#textbook')
+    fireEvent(window, new HashChangeEvent('hashchange'))
+    expect(await screen.findByRole('heading', { name: '教材' })).toBeVisible()
+  })
   it('contains no old demo learning or duplicate worksheet entry', async () => {
     const user = userEvent.setup()
     render(<App apiClient={api()} progressRecorder={recorder} />)

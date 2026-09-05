@@ -6,4 +6,5 @@ export type WordPlanetApi = {
   getProgress?(profileId: string, signal?: AbortSignal): Promise<ServerProgress>
   getReview?(profileId: string, signal?: AbortSignal): Promise<ReviewResponse>
   clearProgress?(profileId: string): Promise<{ status: 'cleared'; deletedEvents: number }>
+  importProgress?(contents: string, profileId: string): Promise<{ imported: number }>
 }

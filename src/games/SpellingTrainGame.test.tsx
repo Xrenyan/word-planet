@@ -23,7 +23,7 @@ describe('SpellingTrainGame', () => {
 
     const term = targetTerm()
     expect(screen.getByTestId('train-target')).toHaveTextContent(demoWords.find((word) => word.term === term)!.meaningZh)
-    expect(screen.getByRole('img', { name: /测试插图/ })).toBeVisible()
+    expect(screen.getByRole('img', { name: /词义联想/ })).toBeVisible()
     expect(screen.getAllByTestId('train-letter-slot')).toHaveLength(term.length)
     expect(screen.getByRole('heading', { name: '拼写小火车' })).toHaveFocus()
     expect(screen.queryByText(term, { exact: true })).not.toBeInTheDocument()

@@ -1,0 +1,47 @@
+{
+  "auditedOn": "2026-09-05",
+  "scope": "The eight compiled runtime curriculum books",
+  "runtimeWords": 1195,
+  "uniqueTerms": 963,
+  "wordSpecificOverrides": 1,
+  "accentResolutions": 2390,
+  "mp3Files": 1928,
+  "voices": {
+    "en-GB": "en-GB-SoniaNeural",
+    "en-US": "en-US-JennyNeural"
+  },
+  "sourceType": "Site-generated synthetic pronunciation, not publisher recordings",
+  "cacheRevision": 4,
+  "manifestSha256": "a32a652a0377c1701ad55da28cea629ba7b09ef396cdf1f142b5dc2243e5a15e",
+  "audioBundleSha256": "fade50b2da54a007eb22c8ef386f1803119d5c5d7f5ca855776b2c0adf741ed4",
+  "audioBundleDigestFormat": "SHA-256 of JSON-encoded [relative path, file SHA-256] pairs sorted by relative path",
+  "validation": {
+    "decoder": "FFmpeg",
+    "sampleRateHz": 16000,
+    "channels": 1,
+    "decodedFiles": 1928,
+    "decodeFailures": 0,
+    "silentFiles": 0,
+    "minimumRmsRelativeToFullScale": 0.03228,
+    "clipDurationSecondsMinMax": [0.827, 5.487],
+    "auditSeconds": 50.06,
+    "manualListeningReview": false
+  },
+  "leadingSilence": {
+    "trimDetectionThresholdDb": -60,
+    "paddingBeforeQuietSpeechMs": 30,
+    "comparisonDetectionThreshold": "absolute signed 16-bit sample amplitude greater than 164",
+    "beforeOnsetMsMedianP95Maximum": [215, 248, 271],
+    "afterOnsetMsMedianP95Maximum": [37, 49, 169],
+    "afterConservativeOnsetMsMedianP95Maximum": [30, 33, 113],
+    "minimumFullWaveformCorrelationDuringBundleProcessing": 0.98498,
+    "note": "Encoded sound onset only; these figures exclude network, browser, and speaker latency. Quiet consonants and complete word endings are retained."
+  },
+  "normalization": {
+    "dictionaryPlaceholdersExpanded": true,
+    "editorialSeparatorsNotSpokenLiterally": true,
+    "pastReadHasSeparateAudio": true,
+    "homographContext": "live, close, read, wind, minute, and use are generated in disambiguating sentences, then extracted after an acoustic pause with their complete final sound retained."
+  },
+  "reproduce": "With edge-tts and FFmpeg or imageio-ffmpeg installed, set WORDPLANET_DECODE_AUDIO=1 and run Python with -B src/pronunciation/test_generate_audio.py."
+}
