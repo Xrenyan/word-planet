@@ -46,21 +46,21 @@ export function AppShell({ activeRoute, children, onRouteChange, availableWordCo
           <Mascot className="learner-profile__avatar" decorative />
           <div>
             <h2 id="learner-name">小星同学</h2>
-            <p>{availableWordCount ? '三到六年级 · 八册已连接' : '正在连接教材词表'}</p>
+            <p>你的英语学习伙伴</p>
           </div>
         </section>
         <section className="progress-orbit" aria-labelledby="progress-title">
-          <h2 id="progress-title">可学习词表</h2>
-          <div className="progress-orbit__ring" role="img" aria-label={availableWordCount ? `已接入 ${availableWordCount} 个公开来源匹配词` : '正在读取可学习词表'}>
+          <h2 id="progress-title">我的单词库</h2>
+          <div className="progress-orbit__ring" role="img" aria-label={availableWordCount ? `共有 ${availableWordCount} 个单词` : '正在准备单词'}>
             <strong>{availableWordCount ?? '—'}</strong>
-            <span>来源匹配词</span>
+            <span>个单词</span>
           </div>
-          <p>每个词保留来源状态，不冒充出版社逐词核验</p>
+          <p>三到六年级 · 跟着课本学</p>
         </section>
         <section className="streak-panel" aria-labelledby="streak-title">
-          <h2 id="streak-title">学习记录</h2>
-          <strong>保存在此设备</strong>
-          <p>练习和游戏的真实作答会在本机整理成复习计划</p>
+          <h2 id="streak-title">词宝小贴士</h2>
+          <strong>听一听，读一读</strong>
+          <p>先认识单词，再试着不看答案拼出来。记不牢的词，去错词本再练练。</p>
         </section>
       </aside>
     </div>

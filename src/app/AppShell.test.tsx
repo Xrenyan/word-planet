@@ -16,7 +16,7 @@ describe('AppShell', () => {
       '练习',
       '游戏',
       '错词',
-      '默写',
+      '工具箱',
     ])
     expect(screen.getByRole('link', { name: '今天' })).toHaveAttribute('aria-current', 'page')
   })

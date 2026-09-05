@@ -1,4 +1,5 @@
-import { sourceLabel } from '../../curriculum/sourceLabel'
+import { unitLabel } from '../../curriculum/labels'
+import { WordDetails } from '../help/ParentGuide'
 import { BookOpen } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import type { VocabularyWordContract } from '../../../shared/contracts'
@@ -12,7 +13,7 @@ type DashboardState =
   | { status: 'loading' }
   | { status: 'error' }
   | { status: 'empty' }
-  | { status: 'ready'; word: VocabularyWordContract; total: number; completed: number }
+  | { status: 'ready'; word: VocabularyWordContract; bookLabel: string; completed: number }
 
 const shanghaiDateFormatter = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Shanghai',
@@ -66,7 +67,8 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
           // Curriculum remains usable when progress synchronization is temporarily offline.
         }
       }
-      setState(word ? { status: 'ready', word, total: words.length, completed } : { status: 'empty' })
+      if (signal?.aborted) return
+      setState(word ? { status: 'ready', word, bookLabel: available.label, completed } : { status: 'empty' })
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return
       setState({ status: 'error' })
@@ -84,8 +86,9 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
       <div className="today-dashboard__header">
         <div>
           <h2 id="today-dashboard-title" data-route-heading tabIndex={-1}>今天的学习</h2>
-          <p>听清楚、读准确，再把单词写出来。</p>
+          <p>每天学一点，单词记得牢。</p>
         </div>
+        <Pressable className="dashboard-secondary-button" onClick={onOpenCurriculum}>换课本</Pressable>
       </div>
 
       {state.status === 'loading' && (
@@ -98,18 +101,18 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
       {state.status === 'error' && (
         <div className="today-dashboard__state" role="alert">
           <strong>教材暂时没有读取成功</strong>
-          <p>请刷新页面重试；本机学习记录不会因此改变。</p>
+          <p>检查一下网络，再试一次吧。</p>
           <Pressable className="dashboard-secondary-button" onClick={() => void load()}>重新读取</Pressable>
         </div>
       )}
 
       {state.status === 'empty' && (
         <div className="today-dashboard__state today-dashboard__state--empty" role="status">
-          <img src={`${import.meta.env.BASE_URL}mascot/cibao.png`} alt="词宝正在检查教材来源" />
+          <img src={`${import.meta.env.BASE_URL}mascot/cibao.png`} alt="词宝等你一起学单词" />
           <div>
-            <strong>正式词表仍在来源核验中</strong>
-            <p>已确认八册教材范围，但不会把来源不明的网络词表冒充最新版教材。</p>
-            <Pressable className="dashboard-primary-button" onClick={onOpenCurriculum}>查看教材状态</Pressable>
+            <strong>先选一本课本吧</strong>
+            <p>找到你正在学的那一册，和词宝一起出发。</p>
+            <Pressable className="dashboard-primary-button" onClick={onOpenCurriculum}>选择课本</Pressable>
           </div>
         </div>
       )}
@@ -117,22 +120,21 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum }: Today
       {state.status === 'ready' && (
         <div className="today-dashboard__lesson">
           <div className="today-dashboard__word">
-            <p className="today-dashboard__context">当前学习单词</p>
+            <p className="today-dashboard__context">{state.bookLabel} · {unitLabel(state.word)}</p>
             <h3>{state.word.term}</h3>
             <p className="today-dashboard__meaning">{state.word.meaningZh}</p>
-            <p className="today-dashboard__context">{sourceLabel(state.word)}</p>
           </div>
           <figure className="today-dashboard__art">
             <WordArtwork image={state.word.image} term={state.word.term} meaningZh={state.word.meaningZh} wordId={state.word.id} />
-            <figcaption>{state.word.image.src.startsWith('word-art/') ? 'OpenMoji 词义配图' : state.word.image.src.startsWith('https:') ? '公开来源配图 · 权利归原来源' : '词义联想提示'}</figcaption>
           </figure>
           <div className="today-dashboard__controls">
-            <PronunciationControls word={state.word} />
+            <PronunciationControls word={state.word} showRecorder={false} />
             <Pressable className="dashboard-primary-button" onClick={() => onStartLearning?.(state.word)}>
               <BookOpen aria-hidden="true" weight="fill" />开始学习
             </Pressable>
           </div>
-          <p className="today-dashboard__progress">今日已完成 {state.completed} / {state.total}</p>
+          <p className="today-dashboard__progress">今天答对了 {state.completed} 个单词</p>
+          <WordDetails word={state.word} />
         </div>
       )}
     </section>

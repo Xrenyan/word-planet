@@ -33,7 +33,7 @@ describe('ReviewCenter', () => {
   it('never invents review data when the service is unavailable', async () => {
     const api = { getReview: vi.fn().mockRejectedValue(new Error('offline')) } as unknown as WordPlanetApi
     render(<ReviewCenter api={api} onStudy={vi.fn()} />)
-    expect(await screen.findByText('本机错题记录暂时无法读取，没有展示推测数据。')).toBeVisible()
+    expect(await screen.findByRole('alert')).toBeVisible()
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
   })
 })

@@ -7,7 +7,6 @@ import {
   createGameResult,
   createGameRounds,
   createGameRoundState,
-  gameScopeLabel,
   recordGameAnswer,
   type GameRound,
   type GameRoundState,
@@ -82,10 +81,13 @@ function BubbleMatchSession({ gameRounds, onReturnToLearning, onBackToHub, onAtt
     return (
       <section className="bubble-game bubble-game--complete" aria-labelledby="bubble-game-title">
         <div className="bubble-game__complete-badge"><CheckCircle aria-hidden="true" weight="fill" /></div>
-        <p className="demo-disclaimer">{gameScopeLabel(gameRounds[0].scope)}</p>
+        <p className="demo-disclaimer">游戏星岛</p>
         <h2 ref={titleRef} id="bubble-game-title" data-route-heading tabIndex={-1}>本局完成</h2>
         <p className="bubble-game__result">答对 {result.correctRounds} / {result.rounds} 轮</p>
-        <p>你完成了这一轮看图找词小游戏，可以回到学习继续巩固。</p>
+        <p>泡泡都找对啦！再选个游戏，或回去学单词吧。</p>
+        <button className="game-back" type="button" onClick={onBackToHub}>
+          <ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心
+        </button>
         <button className="bubble-game__return" type="button" onClick={onReturnToLearning}>
           回到学习 <ArrowRight aria-hidden="true" weight="bold" />
         </button>
@@ -100,7 +102,7 @@ function BubbleMatchSession({ gameRounds, onReturnToLearning, onBackToHub, onAtt
           <button className="bubble-game__back" type="button" onClick={onBackToHub}>
             <ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心
           </button>
-          <p className="demo-disclaimer">{gameScopeLabel(current.scope)}</p>
+          <p className="demo-disclaimer">游戏星岛</p>
           <h2 ref={titleRef} id="bubble-game-title" data-route-heading tabIndex={-1}>泡泡找单词</h2>
           <p>第 {roundIndex + 1} / {gameRounds.length} 轮</p>
         </div>
@@ -134,7 +136,7 @@ function BubbleMatchSession({ gameRounds, onReturnToLearning, onBackToHub, onAtt
 
       {wrongAttempts > 0 && !isCorrect && <p className="bubble-game__feedback" role="status" aria-live="polite">再试一次，看看图片的小细节吧！</p>}
       {isCorrect && <div className="bubble-game__next-row"><p className="bubble-game__feedback bubble-game__feedback--correct" role="status">找对啦，真棒！</p><button className="bubble-game__next" type="button" onClick={nextRound}>下一题 <ArrowRight aria-hidden="true" weight="bold" /></button></div>}
-      <p className="bubble-game__note">每次作答都会进入真实学习记录，用于安排后续复习。</p>
+      <p className="bubble-game__note">慢慢看，答错了也可以再试一次。</p>
     </section>
   )
 }

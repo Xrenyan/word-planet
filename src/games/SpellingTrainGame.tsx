@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, Backspace, CheckCircle, Train } from '@phosphor-
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import { WordArtwork } from '../learning/WordArtwork'
-import { createGameRounds, gameScopeLabel, type GameAttempt, type GameRound, type GameWord } from './engine'
+import { createGameRounds, type GameAttempt, type GameRound, type GameWord } from './engine'
 
 type SpellingTrainGameProps = {
   words: readonly GameWord[]
@@ -111,10 +111,11 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
     return (
       <section className="train-game train-game--complete" aria-labelledby="train-game-title">
         <div className="train-game__complete-badge"><CheckCircle aria-hidden="true" weight="fill" /></div>
-        <p className="demo-disclaimer">{gameScopeLabel(gameRounds[0].scope)}</p>
+        <p className="demo-disclaimer">游戏星岛</p>
         <h2 ref={titleRef} id="train-game-title" data-route-heading tabIndex={-1}>小火车到站啦</h2>
         <p className="train-game__result">拼对 {gameRounds.length} / {gameRounds.length} 轮</p>
-        <p>这是本局实际结果，可以回到学习继续巩固。</p>
+        <p>单词都上车啦！再选个游戏，或回去学单词吧。</p>
+        <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
         <button className="train-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
       </section>
     )
@@ -125,9 +126,9 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
       <header className="train-game__header">
         <div>
           <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
-          <p className="demo-disclaimer">{gameScopeLabel(current.scope)}</p>
+          <p className="demo-disclaimer">游戏星岛</p>
           <h2 ref={titleRef} id="train-game-title" data-route-heading tabIndex={-1}>拼写小火车</h2>
-          <p>{`第 ${roundIndex + 1} / ${gameRounds.length} 轮 · 大小写不敏感，只忽略前后空格`}</p>
+          <p>{`第 ${roundIndex + 1} / ${gameRounds.length} 轮`}</p>
         </div>
         <Train aria-hidden="true" weight="duotone" />
       </header>
@@ -177,7 +178,7 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
           </div>
         </div>
       </div>
-      <p className="train-game__note">每次检查都会进入真实学习记录，帮助生成复习计划。</p>
+      <p className="train-game__note">点字母或用键盘输入，准备好后检查拼写。</p>
     </section>
   )
 }

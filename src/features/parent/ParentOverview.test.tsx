@@ -20,6 +20,5 @@ describe('ParentOverview', () => {
     expect(await screen.findByText('2')).toBeVisible()
     expect(screen.getByText('50%')).toBeVisible()
     expect(screen.getByText('1')).toBeVisible()
-    expect(screen.getByText('所有数字都来自真实作答事件')).toBeVisible()
   })
 })

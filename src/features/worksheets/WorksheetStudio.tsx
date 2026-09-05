@@ -6,17 +6,21 @@ import { Pressable } from '../../ui/Pressable'
 import { WordArtwork } from '../../learning/WordArtwork'
 import { generateWorksheet, type WorksheetRequest } from '../../worksheets/worksheet'
 import { unitLabel } from '../../curriculum/labels'
+import { readBookmark } from '../../learning/bookmark'
 
 function chunk<T>(values: readonly T[], size: number): readonly (readonly T[])[] {
   return Array.from({ length: Math.ceil(values.length / size) }, (_, index) => values.slice(index * size, (index + 1) * size))
 }
 
 export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; fetchWorksheet?: (request: WorksheetRequest) => Promise<Worksheet> }) {
+  const [bookmark] = useState(readBookmark)
+  const [catalogRetry, setCatalogRetry] = useState(0)
+  const [unitRetry, setUnitRetry] = useState(0)
   const [books, setBooks] = useState<readonly BookSummary[]>([])
   const [bookId, setBookId] = useState('')
   const [unit, setUnit] = useState(1)
   const [count, setCount] = useState(10)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'generating' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'loading-error' | 'ready' | 'generating' | 'error'>('loading')
   const [unitStatus, setUnitStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [unitOptions, setUnitOptions] = useState<readonly { unit: number; count: number; label?: string }[]>([{ unit: 1, count: 0 }])
   const [worksheet, setWorksheet] = useState<Worksheet | null>(null)
@@ -35,16 +39,17 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
 
   useEffect(() => {
     const controller = new AbortController()
+    setStatus('loading')
     api.getBooks(controller.signal).then(({ books: values }) => {
       const available = values.filter((book) => (book.availableWordCount ?? book.verifiedWordCount) > 0)
       setBooks(available)
-      setBookId(available[0]?.id ?? '')
+      setBookId(available.find(book => book.id === bookmark?.bookId)?.id ?? available[0]?.id ?? '')
       setStatus('ready')
     }).catch((error) => {
-      if (!(error instanceof DOMException && error.name === 'AbortError')) setStatus('error')
+      if (!(error instanceof DOMException && error.name === 'AbortError')) setStatus('loading-error')
     })
     return () => controller.abort()
-  }, [api])
+  }, [api, bookmark, catalogRetry])
 
   useEffect(() => {
     if (!bookId) return
@@ -58,9 +63,11 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
         for (const word of response?.words ?? []) counts.set(word.unit, (counts.get(word.unit) ?? 0) + 1)
         const options = [...counts.entries()].sort(([left], [right]) => left - right).map(([value, wordCount]) => ({ unit: value, count: wordCount, label: unitLabel(response.words.find(word => word.unit === value)) }))
         const resolved = options.length > 0 ? options : [{ unit: 1, count: 0 }]
+        const bookmarkedUnit = bookId === bookmark?.bookId ? response.words.find(word => word.id === bookmark.wordId)?.unit : undefined
+        const initialUnit = resolved.find(option => option.unit === bookmarkedUnit) ?? resolved[0]
         setUnitOptions(resolved)
-        setUnit(resolved[0].unit)
-        setCount((current) => resolved[0].count > 0 ? Math.min(current, resolved[0].count) : current)
+        setUnit(initialUnit.unit)
+        setCount((current) => initialUnit.count > 0 ? Math.min(current, initialUnit.count) : current)
         setUnitStatus('ready')
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') return
@@ -70,7 +77,7 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
       }
     })()
     return () => controller.abort()
-  }, [api, bookId])
+  }, [api, bookId, bookmark, unitRetry])
 
   const selectedBook = useMemo(() => books.find((book) => book.id === bookId), [bookId, books])
   const selectedUnitCount = unitOptions.find((option) => option.unit === unit)?.count ?? 0
@@ -107,14 +114,15 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
       <header>
         <FilePdf aria-hidden="true" weight="fill" />
         <div>
-          <p className="status-pill">八册学练通道</p>
+          <p className="status-pill">纸上练一练</p>
           <h2 id="worksheet-studio-title" data-route-heading tabIndex={-1}>单元默写纸</h2>
-          <p>题目保留内容状态；公开匹配词不会冒充出版社核验词</p>
+          <p>选好教材和单元，打印一张默写纸。完成后，再用答案页核对。</p>
         </div>
       </header>
-      {status === 'loading' && <p role="status">正在读取可用教材</p>}
+      {status === 'loading' && <p role="status">正在准备教材…</p>}
+      {status === 'loading-error' && <div role="alert"><p>教材暂时没有加载出来，请再试一次。</p><Pressable onClick={() => setCatalogRetry(current => current + 1)}>重新加载教材</Pressable></div>}
       {status === 'error' && <p role="status">默写纸暂时无法生成，请检查教材和题数设置。</p>}
-      {status === 'ready' && books.length === 0 && <p className="worksheet-studio__empty" role="status">当前没有可追溯词表，暂不生成默写题。</p>}
+      {status === 'ready' && books.length === 0 && <p className="worksheet-studio__empty" role="status">还没有可以打印的单词，请稍后再来看看。</p>}
       {books.length > 0 && (
         <div className="worksheet-studio__controls">
           <label>教材<select value={bookId} onChange={(event) => setBookId(event.target.value)}>{books.map((book) => <option key={book.id} value={book.id}>{book.label}</option>)}</select></label>
@@ -124,8 +132,9 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
           <Pressable className="dashboard-primary-button" disabled={status === 'generating' || unitStatus !== 'ready' || !selectedUnitCount} onClick={() => void generate()}>{status === 'generating' ? '正在生成' : '生成单元默写纸'}</Pressable>
         </div>
       )}
-      {books.length > 0 && unitStatus === 'loading' && <p className="worksheet-studio__hint" role="status">正在读取这册教材的单元范围……</p>}
-      {books.length > 0 && unitStatus === 'error' && <p className="worksheet-studio__hint" role="status">单元范围暂时无法读取，已保留 Unit 1 供重试。</p>}
+      {books.length > 0 && unitStatus === 'loading' && <p className="worksheet-studio__hint" role="status">正在准备这册教材的单词…</p>}
+      {books.length > 0 && unitStatus === 'error' && <div className="worksheet-studio__hint" role="alert"><p>这册教材的单词暂时没有加载出来，请再试一次。</p><Pressable onClick={() => setUnitRetry(current => current + 1)}>重新加载单元</Pressable></div>}
+      {books.length > 0 && unitStatus === 'ready' && !selectedUnitCount && <p className="worksheet-studio__hint" role="status">这册教材还没有可打印的单词，请换一本试试。</p>}
       {worksheet && (
         <div className="worksheet-studio__preview">
           <div className="worksheet-studio__toolbar">
@@ -137,7 +146,7 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
               <div className="worksheet-print-page__student-fields"><span>班级：<i /></span><span>姓名：<i /></span><span>日期：<i /></span></div>
               <p className="worksheet-print-page__instruction">{direction === 'zh-en' ? '看中文提示，在横线上写出正确的英文单词或短语。' : '看英文提示，在横线上写出对应的中文意思。'}</p>
               <ol start={pageIndex * 12 + 1}>{questions.map((question) => <li key={question.wordId} data-illustrated={direction === 'zh-en' && question.image.src.startsWith('word-art/')}>{direction === 'zh-en' && question.image.src.startsWith('word-art/') && <WordArtwork revealTerm={false} image={question.image} term="" meaningZh={question.prompt} wordId={question.wordId} />}<div><span>{question.number}. {question.prompt}</span><b aria-label="书写横线">{question.blank}</b></div></li>)}</ol>
-              <footer>{selectedBook?.editionLabel?.startsWith('照片') ? '教材照片核对词表 · 第82–85页' : worksheet.source.contentStatus === 'source-matched' ? '公开来源匹配 · 请按手中教材页复核' : '正式核验词条'} · 共 {worksheet.questions.length} 题 · 第 {pageIndex + 1}/{questionPages.length} 页</footer>
+              <footer>共 {worksheet.questions.length} 题 · 第 {pageIndex + 1}/{questionPages.length} 页</footer>
             </section>)}
           {answerPages.map((answers, pageIndex) => <section key={`answers-${pageIndex}`} className="worksheet-print-page worksheet-print-page--answers" aria-label={`默写答案页 ${pageIndex + 1}/${answerPages.length}`}>
               <header className="worksheet-print-page__header"><div><p>WORD PLANET · 词星球</p><h3>{worksheet.title} · 答案</h3></div><strong>{selectedBook?.label}</strong></header>

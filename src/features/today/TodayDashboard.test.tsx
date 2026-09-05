@@ -77,6 +77,6 @@ describe('TodayDashboard', () => {
       }),
     })} />)
 
-    expect(await screen.findByText('今日已完成 1 / 2')).toBeVisible()
+    expect(await screen.findByText('今天答对了 1 个单词')).toBeVisible()
   })
 })

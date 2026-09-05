@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import type { VocabularyWordContract } from '../../shared/contracts'
+import type { BookSummary, VocabularyWordContract } from '../../shared/contracts'
 import type { LearningEvent } from '../../shared/contracts'
 import { ParentOverview } from '../features/parent/ParentOverview'
 import { TodayDashboard } from '../features/today/TodayDashboard'
@@ -11,6 +11,8 @@ import type { WordPlanetApi } from './api/client'
 import { localProgressRepository, staticWordPlanetApi } from './api/staticClient'
 import { AppShell } from './components/AppShell'
 import { navigationItems, type RouteId } from './routes'
+import { readBookmark } from '../learning/bookmark'
+import { ParentGuide } from '../features/help/ParentGuide'
 
 const CurriculumBookView = lazy(() => import('../features/curriculum/CurriculumBookView').then(module => ({ default: module.CurriculumBookView })))
 const CurriculumBrowser = lazy(() => import('../features/curriculum/CurriculumBrowser').then(module => ({ default: module.CurriculumBrowser })))
@@ -38,6 +40,7 @@ type ProgressRecorder = {
 export function App({ apiClient = staticWordPlanetApi, progressRecorder }: { apiClient?: WordPlanetApi; progressRecorder?: ProgressRecorder }) {
   const [activeRoute, setActiveRoute] = useState<RouteId>(() => readLocation().route)
   const [availableWordCount, setAvailableWordCount] = useState<number>()
+  const [books, setBooks] = useState<readonly BookSummary[]>([])
   const [progressVersion, setProgressVersion] = useState(0)
   const [hasOpenedTools, setHasOpenedTools] = useState(() => readLocation().route === 'toolbox')
   const [selectedWord, setSelectedWord] = useState<VocabularyWordContract | null>(null)
@@ -66,6 +69,8 @@ export function App({ apiClient = staticWordPlanetApi, progressRecorder }: { api
   useEffect(() => {
     const controller = new AbortController()
     void apiClient.getBooks(controller.signal).then(({ books }) => {
+      if (controller.signal.aborted) return
+      setBooks(books)
       setAvailableWordCount(books.reduce((total, book) => total + (book.availableWordCount ?? book.verifiedWordCount), 0))
     }).catch((error) => {
       if (!(error instanceof DOMException && error.name === 'AbortError')) setAvailableWordCount(undefined)
@@ -84,17 +89,22 @@ export function App({ apiClient = staticWordPlanetApi, progressRecorder }: { api
   function study(word: VocabularyWordContract) { setSelectedWord(word); navigate('practice') }
   function changeRoute(route: RouteId) { setSelectedWord(null); navigate(route) }
   function openCurriculum() { changeRoute('textbook') }
+  function returnToWordList() {
+    const bookId = readBookmark()?.bookId ?? selectedWord?.bookId
+    setSelectedWord(null)
+    navigate('textbook', bookId)
+  }
 
   return <AppShell activeRoute={activeRoute} onRouteChange={changeRoute} availableWordCount={availableWordCount}>
     <Suspense fallback={<p className="route-loading" role="status">正在打开，请稍候…</p>}>
     {activeRoute === 'today' && <><TodayDashboard api={apiClient} onOpenCurriculum={openCurriculum} onStartLearning={study} /><ParentOverview api={apiClient} /></>}
-    {activeRoute === 'practice' && <PracticePage word={selectedWord ?? undefined} progressRecorder={localProgress} api={apiClient} onBack={() => changeRoute('today')} />}
+    {activeRoute === 'practice' && <PracticePage word={selectedWord ?? undefined} progressRecorder={localProgress} api={apiClient} onBack={returnToWordList} />}
     {activeRoute === 'textbook' && textbookView.kind === 'library' && <CurriculumBrowser api={apiClient} onSelectBook={(bookId) => navigate('textbook', bookId)} />}
-    {activeRoute === 'textbook' && textbookView.kind === 'server-book' && <CurriculumBookView api={apiClient} bookId={textbookView.bookId} onBack={() => navigate('textbook')} onStudy={study} />}
+    {activeRoute === 'textbook' && textbookView.kind === 'server-book' && <CurriculumBookView api={apiClient} bookId={textbookView.bookId} bookLabel={books.find(book => book.id === textbookView.bookId)?.label} onBack={() => navigate('textbook')} onStudy={study} />}
     {activeRoute === 'games' && <GameHub api={apiClient} progressRecorder={localProgress} onReturnToLearning={() => changeRoute('textbook')} />}
     {activeRoute === 'mistakes' && <ReviewCenter api={apiClient} onStudy={study} />}
-    {activeRoute === 'toolbox' && <><WorksheetStudio api={apiClient} /><ProgressDataControls key={progressVersion} api={apiClient} /></>}
-    {(hasOpenedTools || activeRoute === 'toolbox') && <div className="sync-route-panel" hidden={activeRoute !== 'toolbox'}><SyncDataControls api={apiClient} apiOrigin="https://word-planet-sync.zhanyiqing514.chatgpt.site" onSynced={() => setProgressVersion(version => version + 1)} /></div>}
+    {activeRoute === 'toolbox' && <WorksheetStudio api={apiClient} />}
+    {(hasOpenedTools || activeRoute === 'toolbox') && <div className="sync-route-panel" hidden={activeRoute !== 'toolbox'}><details className="parent-tools"><summary>家长工具</summary><p className="parent-tools__intro">教材说明、学习记录备份，以及换设备继续学。</p><ParentGuide books={books} />{activeRoute === 'toolbox' && <ProgressDataControls key={progressVersion} api={apiClient} />}<SyncDataControls api={apiClient} apiOrigin="https://word-planet-sync.zhanyiqing514.chatgpt.site" onSynced={() => setProgressVersion(version => version + 1)} /></details></div>}
     </Suspense>
   </AppShell>
 }

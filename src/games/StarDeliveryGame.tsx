@@ -3,7 +3,7 @@ import { useEffect, useId, useReducer, useRef } from 'react'
 
 import { WordArtwork } from '../learning/WordArtwork'
 import { createDeliverySchedule } from './deliveryEngine'
-import { gameScopeLabel, type GameAttempt, type GameRound, type GameWord } from './engine'
+import type { GameAttempt, GameRound, GameWord } from './engine'
 
 type StarDeliveryGameProps = {
   words: readonly GameWord[]
@@ -103,11 +103,11 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
     return (
       <section className="delivery-game delivery-game--complete" aria-labelledby={titleId}>
         <div className="delivery-game__complete-badge"><CheckCircle aria-hidden="true" weight="fill" /></div>
-        <p className="demo-disclaimer">{gameScopeLabel(schedule[0].scope)}</p>
+        <p className="demo-disclaimer">游戏星岛</p>
         <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>速递完成</h2>
         <p className="delivery-game__result">答对 {state.correct} / 作答 {state.attempted}</p>
         <p>{state.reason === 'time' ? '时间到，速递已安全停靠。' : `全部 ${schedule.length} 单都已送达。`}</p>
-        <p>这是本局实际作答结果，可以回到学习继续巩固。</p>
+        <p>辛苦啦！再选个游戏，或回去学单词吧。</p>
         <div className="delivery-game__complete-actions">
           <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
           <button className="delivery-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
@@ -121,11 +121,11 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
       <section className="delivery-game delivery-game--start" aria-labelledby={titleId}>
         <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
         <div className="delivery-game__start-icon"><RocketLaunch aria-hidden="true" weight="duotone" /></div>
-        <p className="demo-disclaimer">{gameScopeLabel(schedule[0].scope)}</p>
+        <p className="demo-disclaimer">游戏星岛</p>
         <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>星际速递</h2>
         <p>准备好后再开始。30 秒内最多完成 {schedule.length} 单，看图和中文选择英文。</p>
         <button className="delivery-game__start" type="button" onClick={() => dispatch({ type: 'start' })}><Play aria-hidden="true" weight="fill" /> 开始 30 秒速递</button>
-        <p className="delivery-game__note">计时不会在你按下开始前运行；作答会进入真实学习记录。</p>
+        <p className="delivery-game__note">按下开始才计时，途中也可以暂停休息。</p>
       </section>
     )
   }
@@ -136,7 +136,7 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
       <header className="delivery-game__header">
         <div>
           <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
-          <p className="demo-disclaimer">{gameScopeLabel(current.scope)}</p>
+          <p className="demo-disclaimer">游戏星岛</p>
           <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>星际速递</h2>
           <p>第 {state.roundIndex + 1} / {schedule.length} 单</p>
         </div>
@@ -168,7 +168,7 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
         </div>
       </div>
       {(paused || state.feedback) && <p className="delivery-game__feedback" role="status" aria-live="polite">{paused ? '速递已暂停，准备好后点继续。' : state.feedback}</p>}
-      <p className="delivery-game__note">每一单的真实结果都会用于安排后续复习。</p>
+      <p className="delivery-game__note">看清提示再出发，需要休息就点暂停。</p>
     </section>
   )
 }

@@ -127,7 +127,7 @@ describe('PlanetGuardianGame', () => {
     view.rerender(<PlanetGuardianGame words={[demoWords[0]]} onReviewMiss={vi.fn()} onBackToHub={vi.fn()} onReturnToLearning={vi.fn()} speechDependencies={b.dependencies} />)
     expect(a.synthesis.cancel).toHaveBeenCalled()
     utterances[0].onend?.()
-    expect(screen.queryByText('系统语音播放完成。')).not.toBeInTheDocument()
+    expect(screen.queryByText('发音播放完成。')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '播放守护关英式发音' }))
     view.unmount()
     expect(b.synthesis.cancel).toHaveBeenCalled()
@@ -220,7 +220,8 @@ describe('PlanetGuardianGame', () => {
     expect(screen.getByRole('heading', { name: '三层护盾已点亮' })).toHaveFocus()
     expect(screen.getByText('首次答对 1 / 3 层')).toBeVisible()
     expect(screen.getByText(/再看看：/)).toHaveTextContent(spellingWord.term)
-    expect(screen.getByText(/“首次答对”是本局表现/)).toBeVisible()
+    expect(screen.getByRole('button', { name: '返回游戏中心' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '回到学习' })).toBeEnabled()
   })
 
   it('reports unsupported speech honestly, exposes a real fallback, and keeps audio stage completable', async () => {
@@ -231,7 +232,7 @@ describe('PlanetGuardianGame', () => {
     await user.click(screen.getByRole('button', { name: '点亮下一层' }))
 
     await user.click(screen.getByRole('button', { name: '播放守护关英式发音' }))
-    expect(await screen.findByRole('status')).toHaveTextContent('此浏览器暂不支持系统语音。')
+    expect(await screen.findByRole('status')).toHaveTextContent('暂时播不了声音，看看下方提示吧。')
     const audioTarget = targetId('guardian-audio-target')
     const word = demoWords.find((candidate) => candidate.id === audioTarget)!
     expect(screen.getByText(`无声提示（英式）：英 ${word.ipaUk} · ${word.meaningZh}`)).toBeVisible()
@@ -253,7 +254,7 @@ describe('PlanetGuardianGame', () => {
 
     expect(audioLoader).toHaveBeenCalledWith(audioTarget, 'en-GB', demoWords.find(word => word.id === audioTarget)!.term)
     expect(audioPlayer).toHaveBeenCalledWith('blob:guardian-uk', expect.objectContaining({ signal: expect.any(AbortSignal) }))
-    expect(await screen.findByText('英式发音播放完成 · 本机语音。')).toBeVisible()
+    expect(await screen.findByText('英式发音播放完成。')).toBeVisible()
   })
 
   it('cancels an active speech request on stage change and ignores its stale completion', async () => {
@@ -281,7 +282,7 @@ describe('PlanetGuardianGame', () => {
 
     expect(synthesis.cancel).toHaveBeenCalled()
     expect(screen.getByText('第 3 / 3 层')).toBeVisible()
-    expect(screen.queryByText('系统语音播放完成。')).not.toBeInTheDocument()
+    expect(screen.queryByText('发音播放完成。')).not.toBeInTheDocument()
   })
 
   it('keeps only the latest rapid UK-to-US speech request observable', async () => {
@@ -295,7 +296,7 @@ describe('PlanetGuardianGame', () => {
     await user.click(screen.getByRole('button', { name: '播放守护关英式发音' }))
     await user.click(screen.getByRole('button', { name: '播放守护关美式发音' }))
     act(() => { utterances[0].onend?.(); utterances[1].onend?.() })
-    expect(await screen.findByText('系统语音播放完成。')).toBeVisible()
+    expect(await screen.findByText('发音播放完成。')).toBeVisible()
     expect(synthesis.cancel).toHaveBeenCalled()
   })
 

@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, CardsThree, CheckCircle } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { createGameRound, gameScopeLabel, type GameAttempt, type GameScope, type GameWord } from './engine'
+import type { GameAttempt, GameWord } from './engine'
 import { createMemoryDeck, type MemoryCard } from './memoryEngine'
 import { WordArtwork } from '../learning/WordArtwork'
 
@@ -21,11 +21,10 @@ function revealedLabel(card: MemoryCard, matched: boolean) {
 
 export function MemoryFlipGame({ words, seed = 20260820, onReturnToLearning, onBackToHub, onAttempt }: MemoryFlipGameProps) {
   const deck = createMemoryDeck(words, seed)
-  const scope = createGameRound(words, seed).scope
-  return <MemoryFlipSession key={JSON.stringify(deck)} deck={deck} scope={scope} onReturnToLearning={onReturnToLearning} onBackToHub={onBackToHub} onAttempt={onAttempt} />
+  return <MemoryFlipSession key={JSON.stringify(deck)} deck={deck} onReturnToLearning={onReturnToLearning} onBackToHub={onBackToHub} onAttempt={onAttempt} />
 }
 
-function MemoryFlipSession({ deck, scope, onReturnToLearning, onBackToHub, onAttempt }: { deck: readonly MemoryCard[]; scope: GameScope; onReturnToLearning: () => void; onBackToHub: () => void; onAttempt?: (attempt: GameAttempt) => void }) {
+function MemoryFlipSession({ deck, onReturnToLearning, onBackToHub, onAttempt }: { deck: readonly MemoryCard[]; onReturnToLearning: () => void; onBackToHub: () => void; onAttempt?: (attempt: GameAttempt) => void }) {
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([])
   const [matchedWordIds, setMatchedWordIds] = useState<readonly string[]>([])
   const [mismatch, setMismatch] = useState(false)
@@ -104,10 +103,11 @@ function MemoryFlipSession({ deck, scope, onReturnToLearning, onBackToHub, onAtt
     return (
       <section className="memory-game memory-game--complete" aria-labelledby="memory-game-title">
         <div className="memory-game__complete-badge"><CheckCircle aria-hidden="true" weight="fill" /></div>
-        <p className="demo-disclaimer">{gameScopeLabel(scope)}</p>
+        <p className="demo-disclaimer">游戏星岛</p>
         <h2 ref={titleRef} id="memory-game-title" data-route-heading tabIndex={-1}>翻翻乐完成</h2>
         <p className="memory-game__result">完成 {matchedWordIds.length} / {wordCount} 组</p>
-        <p>这是本局实际配对结果，可以回到学习继续巩固。</p>
+        <p>每组都找齐啦！再选个游戏，或回去学单词吧。</p>
+        <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
         <button className="memory-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
       </section>
     )
@@ -118,7 +118,7 @@ function MemoryFlipSession({ deck, scope, onReturnToLearning, onBackToHub, onAtt
       <header className="memory-game__header">
         <div>
           <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
-          <p className="demo-disclaimer">{gameScopeLabel(scope)}</p>
+          <p className="demo-disclaimer">游戏星岛</p>
           <h2 ref={titleRef} id="memory-game-title" data-route-heading tabIndex={-1}>记忆翻翻乐</h2>
           <p>每组找到同一个词的图片、英文和中文，没有倒计时。</p>
         </div>
@@ -157,7 +157,7 @@ function MemoryFlipSession({ deck, scope, onReturnToLearning, onBackToHub, onAtt
       </div>
       <div className="memory-game__feedback" aria-live="polite" role="status">{message}</div>
       {mismatch && <button ref={continueRef} className="memory-game__continue" type="button" onClick={continueAfterMismatch}>继续翻牌</button>}
-      <p className="memory-game__note">配对和错配都会进入真实学习记录，帮助安排复习。</p>
+      <p className="memory-game__note">记住卡片的位置，慢慢找齐每一组。</p>
     </section>
   )
 }

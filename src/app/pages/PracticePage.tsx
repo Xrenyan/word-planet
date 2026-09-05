@@ -1,4 +1,5 @@
-import { sourceLabel } from '../../curriculum/sourceLabel'
+import { unitLabel } from '../../curriculum/labels'
+import { WordDetails } from '../../features/help/ParentGuide'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, Headphones, Keyboard, Microphone, SquaresFour } from '@phosphor-icons/react'
 import type { LearningEvent, VocabularyWordContract } from '../../../shared/contracts'
@@ -35,6 +36,9 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
   const [selected, setSelected] = useState<(typeof modes)[number]['id']>('learn')
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState('')
+  const [saveWarning, setSaveWarning] = useState('')
+  const [retry, setRetry] = useState(0)
+  const mounted = useRef(false)
   const [sessionWords, setSessionWords] = useState<readonly VocabularyWordContract[]>(() => word ? [word] : [])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [bookWords, setBookWords] = useState<readonly VocabularyWordContract[]>([])
@@ -50,8 +54,7 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
   const activeMode = modes.find((mode) => mode.id === selected)!
   const activeWord = sessionWords[currentIndex]
   const resolvedMode = selected === 'mixed' ? (currentIndex % 2 === 0 ? 'listen' : 'spell') : selected
-  const activeWordIdRef = useRef(activeWord?.id)
-  activeWordIdRef.current = activeWord?.id
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false } }, [])
 
   useEffect(() => {
     if (!activeWord) return
@@ -165,7 +168,14 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
       controller.abort()
       clearAdvanceTimer()
     }
-  }, [api, word])
+  }, [api, word, retry])
+
+  function saveAttempt(outcome: 'correct' | 'missed', source: 'spelling' | 'recognition') {
+    if (!progressRecorder || !activeWord) return
+    const warn = () => { if (mounted.current) setSaveWarning('这次练习没能保存。先别关闭页面，请家长到工具箱帮忙。') }
+    void progressRecorder.record({ id: eventId(activeWord.id), profileId: 'local-child', wordId: activeWord.id, outcome, source, occurredAt: Date.now() })
+      .then(status => { if (status === 'memory-only' || status === 'queued') warn() }).catch(warn)
+  }
 
   function submit(event: React.FormEvent) {
     event.preventDefault()
@@ -173,7 +183,6 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
     const outcome = answer.trim().toLocaleLowerCase('en') === activeWord.term.toLocaleLowerCase('en') ? 'correct' : 'missed'
     trackAttempt(outcome)
     if (outcome === 'correct') { solvedRef.current = true; setSolved(true) }
-    const answeredWordId = activeWord.id
     const hasNext = currentIndex < sessionWords.length - 1
     setFeedback(outcome === 'correct'
       ? hasNext ? '答对了，马上进入下一个单词' : '答对了，本组练习完成'
@@ -182,17 +191,7 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
       clearAdvanceTimer()
       advanceTimerRef.current = setTimeout(advanceOrFinish, 520)
     }
-    if (!progressRecorder) return
-    void progressRecorder.record({
-      id: eventId(activeWord.id), profileId: 'local-child', wordId: activeWord.id, outcome, source: 'spelling', occurredAt: Date.now(),
-    }).then((status) => {
-      if (activeWordIdRef.current !== answeredWordId) return
-      setFeedback(outcome === 'correct'
-        ? status === 'memory-only' ? '答对了；本次记录未保存，马上进入下一词' : hasNext ? '答对了，已保存在此设备，马上进入下一词' : '答对了，已保存在此设备，本组练习完成'
-        : status === 'memory-only' ? '再练一次；本次错词记录未保存' : '再练一次，错词已保存在此设备')
-    }).catch(() => {
-      if (activeWordIdRef.current === answeredWordId) setFeedback(outcome === 'correct' ? '答对了；本次记录未保存，请检查浏览器存储权限' : '再练一次；本次记录未保存，请检查浏览器存储权限')
-    })
+    saveAttempt(outcome, 'spelling')
   }
 
   function chooseMeaning(chosenWordId: string) {
@@ -200,7 +199,6 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
     const outcome = chosenWordId === activeWord.id ? 'correct' : 'missed'
     trackAttempt(outcome)
     if (outcome === 'correct') { solvedRef.current = true; setSolved(true) }
-    const answeredWordId = activeWord.id
     const hasNext = currentIndex < sessionWords.length - 1
     setFeedback(outcome === 'correct'
       ? hasNext ? '选对了，马上进入下一个单词' : '选对了，本组练习完成'
@@ -209,17 +207,7 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
       clearAdvanceTimer()
       advanceTimerRef.current = setTimeout(advanceOrFinish, 520)
     }
-    if (!progressRecorder) return
-    void progressRecorder.record({
-      id: eventId(activeWord.id), profileId: 'local-child', wordId: activeWord.id, outcome, source: 'recognition', occurredAt: Date.now(),
-    }).then((status) => {
-      if (activeWordIdRef.current !== answeredWordId) return
-      setFeedback(outcome === 'correct'
-        ? status === 'memory-only' ? '选对了；本次记录未保存，马上进入下一词' : hasNext ? '选对了，已保存在此设备，马上进入下一词' : '选对了，已保存在此设备，本组练习完成'
-        : status === 'memory-only' ? '再练一次；本次错词记录未保存' : '再练一次，错词已保存在此设备')
-    }).catch(() => {
-      if (activeWordIdRef.current === answeredWordId) setFeedback(outcome === 'correct' ? '选对了；本次记录未保存，请检查浏览器存储权限' : '再练一次；本次记录未保存，请检查浏览器存储权限')
-    })
+    saveAttempt(outcome, 'recognition')
   }
 
   const recognitionCandidates = activeWord
@@ -234,25 +222,26 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
     <BookOpen weight="duotone" aria-hidden="true" />
     <p className="status-pill">小步前进，每次一组</p>
     <h2 id="practice-complete-title" tabIndex={-1}>这一组完成啦！</h2>
-    <p>本组 {sessionWords.length} 个单词{Object.keys(groupAttempts).length === 0 && ' · 已完成浏览，不计为答题掌握'}</p>
+    <p>本组 {sessionWords.length} 个单词{Object.keys(groupAttempts).length === 0 && ' · 已认识，接着试试不看答案练一练吧'}</p>
+    {saveWarning && <p className="practice-save-warning" role="alert">{saveWarning}</p>}
     {Object.keys(groupAttempts).length > 0 && <p>首次答对 {Object.values(groupAttempts).filter(result => result === 'correct').length} / {Object.keys(groupAttempts).length}</p>}
     <ul className="practice-completion__words">{sessionWords.map(candidate => <li key={candidate.id}><strong lang="en">{candidate.term}</strong><span>{candidate.meaningZh}</span><small>{missedIds.includes(candidate.id) ? '再巩固' : groupAttempts[candidate.id] ? '首次答对' : '已浏览'}</small></li>)}</ul>
     <div className="practice-completion__actions">
       {missedIds.length > 0 && <Pressable className="dashboard-primary-button" onClick={retryMissed}>再练错词（{missedIds.length}）</Pressable>}
       {nextGroupIndex < bookWords.length && <Pressable className={missedIds.length ? '' : 'dashboard-primary-button'} onClick={() => startGroup(bookWords, nextGroupIndex)}>继续下一组<ArrowRight aria-hidden="true" /></Pressable>}
       <Pressable onClick={() => { setGroupAttempts({}); setMissedIds([]); setFinished(false); moveTo(0) }}>再学这一组</Pressable>
-      {onBack && <Pressable onClick={onBack}>返回今天</Pressable>}
+      {onBack && <Pressable onClick={onBack}>返回词表</Pressable>}
     </div>
   </section>
 
   if (activeWord) return (
     <section className="route-empty-state verified-practice" aria-labelledby="practice-title" data-practice-mode={resolvedMode}>
       <div className="verified-practice__topbar">
-        {onBack && <Pressable className="verified-practice__back" onClick={onBack}><ArrowLeft aria-hidden="true" />返回今天</Pressable>}
-        <p className="status-pill">{sourceLabel(activeWord)}</p>
+        {onBack && <Pressable className="verified-practice__back" onClick={onBack}><ArrowLeft aria-hidden="true" />返回词表</Pressable>}
+        <p className="status-pill">{unitLabel(activeWord)}</p>
         <p className="verified-practice__progress" aria-live="polite">第 {currentIndex + 1} / {sessionWords.length} 词</p>
       </div>
-      <h2 id="practice-title" data-route-heading tabIndex={-1}>{resolvedMode === 'listen' ? '听音挑战' : `${selected === 'learn' ? '学习' : '练习'} · ${activeWord.meaningZh}`}</h2>
+      <h2 id="practice-title" data-route-heading tabIndex={-1}>{resolvedMode === 'listen' ? '听音挑战' : modes.find(mode => mode.id === resolvedMode)?.label}</h2>
       <div className="practice-landing__modes verified-practice__modes" role="list" aria-label="练习方式">
         {modes.map(({ id, label, icon: Icon }) => (
           <button key={id} type="button" className="practice-landing__mode" aria-pressed={selected === id} onClick={() => chooseMode(id)}>
@@ -262,23 +251,23 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
         ))}
       </div>
       <div className="verified-practice__content">
-        <figure>
-          {resolvedMode === 'listen' ? <div className="listening-orbit" aria-label="请听声音作答"><Headphones weight="duotone" /><strong>小耳朵，准备好了吗？</strong><p>点发音，听完再选择</p></div> : <WordArtwork image={activeWord.image} term={activeWord.term} meaningZh={activeWord.meaningZh} wordId={activeWord.id} revealTerm={resolvedMode !== 'spell'} />}
-          <figcaption>{activeWord.image.src.startsWith('word-art/') ? <a href={`${import.meta.env.BASE_URL}licenses/WORD-ARTWORK.txt`} target="_blank" rel="noreferrer">OpenMoji 词义配图 · CC BY-SA 4.0</a> : activeWord.image.src.startsWith('https:') ? '公开来源配图 · 权利归原来源' : '词义联想提示 · 结合例子理解'}</figcaption>
-        </figure>
+        {resolvedMode !== 'spell' && <figure>
+          {resolvedMode === 'listen' ? <div className="listening-orbit" aria-label="请听声音作答"><Headphones weight="duotone" /><strong>小耳朵，准备好了吗？</strong><p>点发音，听完再选择</p></div> : <WordArtwork image={activeWord.image} term={activeWord.term} meaningZh={activeWord.meaningZh} wordId={activeWord.id} />}
+        </figure>}
         <div>
+          {resolvedMode === 'spell' && <section className="spelling-prompt" aria-label="中文提示"><span>这个单词怎么写？</span><strong>{activeWord.meaningZh}</strong></section>}
           {(resolvedMode === 'learn' || resolvedMode === 'speak') && <section className="verified-practice__word-card" aria-label={`正在学习单词 ${activeWord.term}`}>
-            <span>NEW WORD</span>
+            <span>一起认识这个词</span>
             <strong lang="en">{activeWord.term}</strong>
             <p>{activeWord.meaningZh}</p>
             <small>看图、听音，再大声读三遍</small>
           </section>}
-          <PronunciationControls key={`${activeWord.id}-${resolvedMode}`} word={activeWord} showIpa={resolvedMode === 'learn' || resolvedMode === 'speak'} showRecorder={resolvedMode === 'learn' || resolvedMode === 'speak'} />
+          <PronunciationControls key={`${activeWord.id}-${resolvedMode}`} word={activeWord} showIpa={resolvedMode === 'learn' || resolvedMode === 'speak'} showRecorder={resolvedMode === 'speak'} />
           {resolvedMode === 'spell' && <form onSubmit={submit}>
               <label htmlFor="verified-spelling">根据中文写英文</label>
               <div>
-                <input ref={inputRef} id="verified-spelling" value={answer} disabled={solved} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} />
-                <Pressable type="submit" disabled={solved} className="dashboard-primary-button">检查拼写</Pressable>
+                <input ref={inputRef} id="verified-spelling" value={answer} disabled={solved} onChange={(event) => setAnswer(event.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} placeholder="在这里写英文" />
+                <Pressable type="submit" disabled={solved || !answer.trim()} className="dashboard-primary-button">检查拼写</Pressable>
               </div>
             </form>}
           {resolvedMode === 'listen' && <section className="verified-practice__recognition" aria-labelledby="recognition-title">
@@ -288,11 +277,12 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
             </div>
           </section>}
           {resolvedMode === 'speak' && <section className="verified-practice__speaking" aria-label="跟读练习说明">
-            <p>完成跟读后继续；没有真实评测时不会生成分数。</p>
+            <p>听听自己的录音，和示范比一比。准备好就继续吧。</p>
             <Pressable className="dashboard-primary-button" onClick={advanceOrFinish}>{currentIndex < sessionWords.length - 1 ? '跟读完成，下一词' : '完成这一组'}</Pressable>
           </section>}
           {feedback && <p className="verified-practice__feedback" role="status">{feedback}</p>}
-          <details className="verified-practice__source"><summary>教材与来源</summary><p>{activeWord.editionNote}</p><a href={activeWord.source.url} target="_blank" rel="noreferrer">查看词表来源</a></details>
+          {saveWarning && <p className="practice-save-warning" role="alert">{saveWarning}</p>}
+          <WordDetails word={activeWord} />
         </div>
       </div>
       <nav className="verified-practice__navigation" aria-label="连续学习导航">
@@ -305,12 +295,12 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
   )
 
   if (loadStatus === 'loading') return <section className="route-empty-state practice-landing" aria-labelledby="practice-title"><h2 id="practice-title" data-route-heading tabIndex={-1}>练习</h2><p role="status">正在准备第一组练习题……</p></section>
-  if (loadStatus === 'error' || loadStatus === 'empty') return <section className="route-empty-state practice-landing" aria-labelledby="practice-title"><h2 id="practice-title" data-route-heading tabIndex={-1}>练习</h2><p role="alert">{loadStatus === 'error' ? '练习词表暂时无法读取，请稍后重试。' : '当前没有可追溯词条，暂不生成练习题。'}</p></section>
+  if (loadStatus === 'error' || loadStatus === 'empty') return <section className="route-empty-state practice-landing" aria-labelledby="practice-title"><h2 id="practice-title" data-route-heading tabIndex={-1}>练习</h2><p role="alert">{loadStatus === 'error' ? '单词还没加载好，点一下再试试。' : '这本课本还没有单词，先选另一本吧。'}</p>{loadStatus === 'error' && <Pressable onClick={() => setRetry(value => value + 1)}>再试一次</Pressable>}{onBack && <Pressable onClick={onBack}>返回词表</Pressable>}</section>
 
   return (
     <section className="route-empty-state practice-landing" aria-labelledby="practice-title">
       <h2 id="practice-title" data-route-heading tabIndex={-1}>练习</h2>
-      <p>选择练习方式。题目只使用有明确来源状态的词条。</p>
+      <p>选一种喜欢的方式，把单词记得更牢。</p>
       <div className="practice-landing__modes" role="list" aria-label="练习方式">
         {modes.map(({ id, label, icon: Icon }) => (
           <button

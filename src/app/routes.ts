@@ -4,7 +4,7 @@ export const navigationItems = [
   { id: 'practice', label: '练习', href: '#practice' },
   { id: 'games', label: '游戏', href: '#games' },
   { id: 'mistakes', label: '错词', href: '#mistakes' },
-  { id: 'toolbox', label: '默写', href: '#toolbox' },
+  { id: 'toolbox', label: '工具箱', href: '#toolbox' },
 ] as const
 
 export type RouteId = (typeof navigationItems)[number]['id']
@@ -16,5 +16,5 @@ export const routeLabels: Record<RouteId, string> = {
   practice: '练习',
   games: '游戏',
   mistakes: '错词',
-  toolbox: '默写',
+  toolbox: '工具箱',
 }

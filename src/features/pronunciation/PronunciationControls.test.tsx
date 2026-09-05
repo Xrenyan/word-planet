@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { PronunciationControls } from './PronunciationControls'
@@ -43,7 +43,6 @@ describe('PronunciationControls', () => {
   it('passes the selected slow rate to real audio playback', async () => {
     const playUrl = vi.fn(async () => undefined)
     render(<PronunciationControls word={word} loadAudio={readyAudio} playUrl={playUrl} />)
-    await screen.findByText('英式、美式发音已就绪')
     await userEvent.click(screen.getByRole('button', { name: '慢速播放' }))
     await userEvent.click(screen.getByRole('button', { name: '播放英式发音' }))
     expect(playUrl).toHaveBeenCalledWith('audio/en-GB.mp3', expect.objectContaining({ rate: 0.72 }))
@@ -58,7 +57,7 @@ describe('PronunciationControls', () => {
     view.rerender(<PronunciationControls word={{ ...word, id: 'next', term: 'pear' }} loadAudio={loadAudio} playUrl={playUrl} />)
     await act(async () => { finish({ status: 'audio', source: 'local', url: 'old-apple.mp3' }) })
     expect(playUrl).not.toHaveBeenCalled()
-    expect(await screen.findByText('英式、美式发音已就绪')).toBeVisible()
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
   })
 
   it('releases a microphone permission result that arrives after changing words', async () => {
@@ -132,22 +131,22 @@ describe('PronunciationControls', () => {
     const playUrl = vi.fn(() => new Promise<void>((resolve) => { finishPlayback = resolve }))
     render(<PronunciationControls word={word} loadAudio={loadAudio} playUrl={playUrl} />)
 
-    expect(await screen.findByText('英式、美式发音已就绪')).toBeVisible()
+    await waitFor(() => expect(loadAudio.mock.calls.map(call => call[1])).toEqual(['en-GB', 'en-US']))
     await userEvent.click(screen.getByRole('button', { name: '播放英式发音' }))
     expect(screen.getByRole('status')).toHaveTextContent('英式发音正在播放')
     finishPlayback()
-    expect(await screen.findByText('英式本地发音播放完成')).toBeVisible()
+    expect(await screen.findByText('英式发音播放完成')).toBeVisible()
   })
 
-  it('honestly says device voices are checked at click time', async () => {
+  it('does not claim a fallback voice works before it is played', async () => {
     const loadAudio = vi.fn(async (_wordId: string, locale: 'en-GB' | 'en-US') => ({ status: 'device-fallback' as const, locale, reason: 'provider-not-configured' }))
     render(<PronunciationControls word={word} loadAudio={loadAudio} />)
 
-    expect(await screen.findByText('点击时检查设备英式或美式语音')).toBeVisible()
-    expect(screen.queryByText('英式、美式发音已就绪')).not.toBeInTheDocument()
+    await waitFor(() => expect(loadAudio).toHaveBeenCalledTimes(2))
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
   })
 
-  it('announces pointerdown immediately while the real audio request is still pending', async () => {
+  it('waits for an actual click then immediately announces pending playback', async () => {
     let resolve!: (value: WordAudioResult) => void
     const loadAudio = vi.fn(() => new Promise<WordAudioResult>((done) => { resolve = done }))
     const deviceSpeak = vi.fn(async () => ({ status: 'spoken' as const, accent: 'en-GB' as const, rate: .86 }))
@@ -155,11 +154,12 @@ describe('PronunciationControls', () => {
     const button = screen.getByRole('button', { name: '播放英式发音' })
 
     fireEvent.pointerDown(button)
-    expect(screen.getByRole('status')).toHaveTextContent('正在准备英式发音')
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
     fireEvent.click(button)
+    expect(screen.getByRole('status')).toHaveTextContent('正在准备英式发音')
     resolve({ status: 'device-fallback', locale: 'en-GB', reason: 'provider-not-configured' })
 
-    expect(await screen.findByText('英式设备语音播放完成')).toBeVisible()
+    expect(await screen.findByText('英式发音播放完成')).toBeVisible()
     expect(deviceSpeak).toHaveBeenCalledWith('apple', 'en-GB', .86)
   })
 

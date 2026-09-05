@@ -34,14 +34,14 @@ export function ReviewCenter({ api, onStudy }: { api: WordPlanetApi; onStudy: (w
     <section className="review-center" aria-labelledby="review-center-title">
       <header className="review-center__header">
         <div className="review-center__icon"><BookOpenText aria-hidden="true" weight="duotone" /></div>
-        <div><p className="status-pill">错词巩固 · 间隔复习</p><h2 id="review-center-title" data-route-heading tabIndex={-1}>需要再练的单词</h2><p>先巩固错词，再复习到期词。跨天答对后，复习间隔逐步延长至 1、3、7、14、30 天。</p></div>
+        <div><p className="status-pill">再练一遍，记得更牢</p><h2 id="review-center-title" data-route-heading tabIndex={-1}>需要再练的单词</h2><p>先练还没记牢的词，再复习学过的词。每天一点点，记得更牢。</p></div>
       </header>
-      {state.status === 'loading' && <p className="review-center__state" role="status">正在整理真实作答记录…</p>}
-      {state.status === 'error' && <div className="review-center__state" role="alert"><p>本机错题记录暂时无法读取，没有展示推测数据。</p><Pressable onClick={() => void load()}>重新读取</Pressable></div>}
-      {state.status === 'ready' && state.items.length === 0 && <div className="review-center__empty" role="status"><Sparkle aria-hidden="true" weight="fill" /><div><strong>现在没有需要优先复习的单词</strong><p>继续完成教材学习或游戏，真实错词会自动出现在这里。</p></div></div>}
+      {state.status === 'loading' && <p className="review-center__state" role="status">正在准备要复习的单词…</p>}
+      {state.status === 'error' && <div className="review-center__state" role="alert"><p>暂时读不到你的复习记录，请再试一次。</p><Pressable onClick={() => void load()}>重新读取</Pressable></div>}
+      {state.status === 'ready' && state.items.length === 0 && <div className="review-center__empty" role="status"><Sparkle aria-hidden="true" weight="fill" /><div><strong>现在没有需要复习的单词</strong><p>去「教材」选几个单词练一练吧。还没记牢的词，会在这里等你再试一次。</p></div></div>}
       {state.status === 'ready' && state.items.length > 0 && <ul className="review-center__list">{state.items.map((item) => <li key={item.word.id}>
         <WordArtwork image={item.word.image} term={item.word.term} meaningZh={item.word.meaningZh} wordId={item.word.id} />
-        <div><h3>{item.word.term}</h3><p>{item.word.meaningZh}</p><small>{item.weakness > 0 ? '错词巩固' : '到期复习'} · 错 {item.misses} 次 · 对 {item.correct} 次</small></div>
+        <div><h3>{item.word.term}</h3><p>{item.word.meaningZh}</p><small>{item.weakness > 0 ? '再练一练' : '该复习啦'} · 错 {item.misses} 次 · 对 {item.correct} 次</small></div>
         <Pressable aria-label={`复习 ${item.word.term}`} onClick={() => onStudy(item.word)}>开始复习 <ArrowRight aria-hidden="true" weight="bold" /></Pressable>
       </li>)}</ul>}
     </section>

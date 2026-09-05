@@ -19,6 +19,23 @@ const nextWord = {
 }
 
 describe('PracticePage verified session', () => {
+  it('keeps a failed-save warning visible after automatically advancing', async () => {
+    const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: 'g3-upper', words: [word, nextWord] }) }
+    render(<PracticePage word={word} api={api} progressRecorder={{ record: vi.fn().mockResolvedValue('memory-only') }} />)
+    await screen.findByText('第 1 / 2 词')
+    await userEvent.click(screen.getByRole('button', { name: '看义拼写' }))
+    await userEvent.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
+    await screen.findByText('第 2 / 2 词')
+    expect(screen.getByRole('alert')).toHaveTextContent('这次练习没能保存')
+  })
+
+  it('retries a direct practice request after the network recovers', async () => {
+    const api = { getBooks: vi.fn().mockResolvedValue({ books: [{ id: word.bookId, availableWordCount: 2 }] }), getWords: vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue({ bookId: word.bookId, words: [word, nextWord] }) }
+    render(<PracticePage api={api} />)
+    await screen.findByRole('alert')
+    await userEvent.click(screen.getByRole('button', { name: '再试一次' }))
+    expect(await screen.findByText('第 1 / 2 词')).toBeVisible()
+  })
   it('finishes a short group and retests only the words missed in that group', async () => {
     const user = userEvent.setup()
     const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: 'g3-upper', words: [word, nextWord] }) }
@@ -34,7 +51,7 @@ describe('PracticePage verified session', () => {
     expect(screen.getByText('首次答对 1 / 2')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '再练错词（1）' }))
     expect(screen.getByText('第 1 / 1 词')).toBeVisible()
-    expect(screen.getByRole('heading', { name: '练习 · 苹果' })).toBeVisible()
+    expect(screen.getByRole('region', { name: '中文提示' })).toHaveTextContent('苹果')
   })
 
   it('starts the next group without repeating the first eight words', async () => {
@@ -46,7 +63,7 @@ describe('PracticePage verified session', () => {
     for (let i = 0; i < 7; i++) await user.click(screen.getByRole('button', { name: '下一个单词' }))
     await user.click(screen.getByRole('button', { name: '完成这一组' }))
     await user.click(screen.getByRole('button', { name: '继续下一组' }))
-    expect(screen.getByRole('heading', { name: '学习 · 词8' })).toBeVisible()
+    expect(screen.getByRole('region', { name: '正在学习单词 word8' })).toBeVisible()
     expect(screen.getByText('第 1 / 2 词')).toBeVisible()
   })
 
@@ -83,9 +100,9 @@ describe('PracticePage verified session', () => {
 
     await user.click(screen.getByRole('button', { name: '跟读练习' }))
     expect(screen.getByText('apple')).toBeVisible()
-    expect(screen.getByText('完成跟读后继续；没有真实评测时不会生成分数。')).toBeVisible()
+    expect(screen.getByRole('button', { name: '开始跟读' })).toBeVisible()
     await user.click(screen.getByRole('button', { name: '跟读完成，下一词' }))
-    expect(screen.getByRole('heading', { name: '练习 · 猫' })).toBeVisible()
+    expect(screen.getByRole('region', { name: '正在学习单词 cat' })).toBeVisible()
     expect(record).not.toHaveBeenCalled()
   })
 
@@ -101,11 +118,11 @@ describe('PracticePage verified session', () => {
     expect(await screen.findByText('第 1 / 2 词')).toBeVisible()
     expect(screen.getByRole('button', { name: '上一个单词' })).toBeDisabled()
     await user.click(screen.getByRole('button', { name: '下一个单词' }))
-    expect(screen.getByRole('heading', { name: '学习 · 猫' })).toBeVisible()
+    expect(screen.getByRole('region', { name: '正在学习单词 cat' })).toBeVisible()
     expect(screen.getByText('第 2 / 2 词')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '上一个单词' }))
-    expect(screen.getByRole('heading', { name: '学习 · 苹果' })).toBeVisible()
-    await user.click(screen.getByRole('button', { name: '返回今天' }))
+    expect(screen.getByRole('region', { name: '正在学习单词 apple' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: '返回词表' }))
     expect(onBack).toHaveBeenCalledOnce()
   })
 
@@ -121,11 +138,12 @@ describe('PracticePage verified session', () => {
     await user.click(screen.getByRole('button', { name: '看义拼写' }))
 
     await user.type(screen.getByLabelText('根据中文写英文'), 'pear{enter}')
-    expect(screen.getByRole('heading', { name: '练习 · 苹果' })).toBeVisible()
+    expect(screen.getByRole('region', { name: '中文提示' })).toHaveTextContent('苹果')
     await user.clear(screen.getByLabelText('根据中文写英文'))
     await user.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
 
-    expect(await screen.findByRole('heading', { name: '练习 · 猫' }, { timeout: 1500 })).toBeVisible()
+    await screen.findByText('第 2 / 2 词', {}, { timeout: 1500 })
+    expect(screen.getByRole('region', { name: '中文提示' })).toHaveTextContent('猫')
     expect(screen.getByLabelText('根据中文写英文')).toHaveValue('')
   })
 
@@ -142,7 +160,8 @@ describe('PracticePage verified session', () => {
     await user.click(screen.getByRole('button', { name: '看义拼写' }))
 
     await user.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
-    expect(await screen.findByRole('heading', { name: '练习 · 猫' }, { timeout: 1500 })).toBeVisible()
+    await screen.findByText('第 2 / 2 词', {}, { timeout: 1500 })
+    expect(screen.getByRole('region', { name: '中文提示' })).toHaveTextContent('猫')
     await act(async () => finishSave('synced'))
 
     expect(screen.queryByText(/记录已同步/)).not.toBeInTheDocument()
@@ -156,7 +175,7 @@ describe('PracticePage verified session', () => {
     render(<PracticePage api={api} />)
 
     expect(screen.getByText('正在准备第一组练习题……')).toBeVisible()
-    expect(await screen.findByRole('heading', { name: '学习 · 苹果' })).toBeVisible()
+    expect(await screen.findByRole('region', { name: '正在学习单词 apple' })).toBeVisible()
     expect(screen.getByText('apple')).toBeVisible()
     await userEvent.click(screen.getByRole('button', { name: '看义拼写' }))
     expect(screen.getByLabelText('根据中文写英文')).toBeEnabled()
@@ -170,10 +189,10 @@ describe('PracticePage verified session', () => {
     await user.click(screen.getByRole('button', { name: '看义拼写' }))
 
     await user.type(screen.getByLabelText('根据中文写英文'), 'pear{enter}')
-    expect(await screen.findByText('再练一次，错词已保存在此设备')).toBeVisible()
+    expect(screen.getByText('再听一遍试试，答案会保留在当前单词')).toBeVisible()
     await user.clear(screen.getByLabelText('根据中文写英文'))
     await user.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
-    expect(await screen.findByText(/答对了，已保存在此设备/)).toBeVisible()
+    expect(screen.getByText('答对了，本组练习完成')).toBeVisible()
 
     expect(record).toHaveBeenCalledTimes(2)
     expect(record.mock.calls.map(([event]) => ({ wordId: event.wordId, outcome: event.outcome, source: event.source }))).toEqual([

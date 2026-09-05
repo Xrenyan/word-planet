@@ -38,21 +38,21 @@ function mergeSnapshots(local: unknown, remote: unknown) {
 
 function errorMessage(error: unknown) {
   const code = error instanceof VaultError ? error.code : error instanceof Error ? error.message : ''
-  if (code === 'event-id-conflict') return '两台设备对同一条记录保存了不同内容，已停止合并且未导入。请先分别导出本地记录，保留原始备份。'
-  if (code === 'invalid-sync-snapshot' || code === 'invalid-data') return '备份格式或记录内容不符合要求，未导入。请检查配对码是否来自词星球。'
-  if (code === 'invalid-pairing-code') return '配对码格式不正确，请完整复制旧设备显示的配对码后重试。'
-  if (code === 'not-found') return '未找到可访问的云端备份：请检查配对码；备份也可能已删除或过期。本地记录仍保留。'
-  if (code === 'decryption-failed') return '备份解密失败，可能是配对码不正确或备份已损坏。请核对后重试，本地记录仍保留。'
-  if (code === 'revision-conflict') return '另一台设备正在更新备份，本次同步未完成。请稍后点击手动同步重试。'
-  if (code === 'rate-limited') return `操作过于频繁，请${error instanceof VaultError && error.retryAfter ? `约 ${Math.ceil(error.retryAfter / 60)} 分钟后` : '稍后'}重试。本地记录仍保留。`
-  if (code === 'payload-too-large') return '学习记录超过当前云端备份容量，请继续使用本地导出保存完整记录。'
-  if (code === 'local-import-failed' || code === 'storage-import-failed') return '云端记录已核对，但本机记录未能保存。请检查浏览器存储权限后再次手动同步；暂未记为同步成功。'
-  if (code === 'encryption-unavailable') return '当前浏览器无法使用安全加密，请使用最新版浏览器打开 HTTPS 页面，或继续本地导出。'
-  if (code === 'network-error' || code === 'request-timeout') return '网络未连接或请求超时，结果尚未确认。请保留当前配对码，网络恢复后连接或手动同步重试。'
-  if (code === 'capacity-reached' || code === 'service-unavailable') return '云端服务暂时不可用或容量已满，请稍后重试；仍可导出本地记录。'
-  if (code === 'invalid-api-origin' || code === 'origin-not-allowed') return '云端服务配置暂不可用，请继续使用本地导出。'
+  if (code === 'event-id-conflict') return '两台设备保存的同一条记录不一致，暂时无法合并。请先分别导出学习记录，保留备份。'
+  if (code === 'invalid-sync-snapshot' || code === 'invalid-data') return '这份备份暂时无法使用，原有记录未改动。请确认配对码来自词星球。'
+  if (code === 'invalid-pairing-code') return '配对码不完整或有误，请完整复制另一台设备上的配对码。'
+  if (code === 'not-found') return '没有找到这份备份。请核对配对码；备份也可能已删除或过期。此设备的记录仍保留。'
+  if (code === 'decryption-failed') return '无法打开这份备份，请核对配对码。备份也可能已损坏，此设备的记录仍保留。'
+  if (code === 'revision-conflict') return '另一台设备正在同步。请稍后再点“手动同步”。'
+  if (code === 'rate-limited') return `操作有些频繁，请${error instanceof VaultError && error.retryAfter ? `约 ${Math.ceil(error.retryAfter / 60)} 分钟后` : '稍后'}再试。此设备的记录仍保留。`
+  if (code === 'payload-too-large') return '记录较多，暂时无法完成云端备份。请导出学习记录，保存完整备份。'
+  if (code === 'local-import-failed' || code === 'storage-import-failed') return '学习记录未能保存到此设备，同步尚未完成。请确认浏览器允许保存网站数据，再试一次。'
+  if (code === 'encryption-unavailable') return '当前浏览器暂时无法安全备份。请更新浏览器后重试，或先导出学习记录。'
+  if (code === 'network-error' || code === 'request-timeout') return '网络连接不稳定，暂时无法确认是否完成。请保留配对码，连接恢复后再试一次。'
+  if (code === 'capacity-reached' || code === 'service-unavailable') return '暂时无法备份或同步。请稍后再试，也可以先导出学习记录。'
+  if (code === 'invalid-api-origin' || code === 'origin-not-allowed') return '暂时无法备份或同步。请先导出学习记录，保存一份备份。'
   if (code === 'clipboard-unavailable') return '浏览器未允许复制。请先显示配对码，再手动复制并妥善保存。'
-  return '操作未完成，请检查网络和浏览器存储权限后重试。本地记录仍保留。'
+  return '操作未完成，请稍后再试。此设备的学习记录仍保留。'
 }
 
 function resolveStorage(storage: Storage | null | undefined) {
@@ -67,7 +67,7 @@ function readRemembered(storage: Storage | null, key: string) {
     const parsed = z.object({ version: z.literal(1), code: z.string(), lastSynced: z.number().int().positive().nullable() }).strict().parse(value)
     parsePairingCode(parsed.code)
     return { code: parsed.code, lastSynced: parsed.lastSynced, warning: '' }
-  } catch { return { code: '', lastSynced: null as number | null, warning: '无法读取本设备保存的配对信息，请重新输入配对码。' } }
+  } catch { return { code: '', lastSynced: null as number | null, warning: '无法找到此设备保存的配对码，请重新输入。' } }
 }
 
 export function SyncDataControls(props: SyncDataControlsProps) {
@@ -87,7 +87,7 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
   const [revealed, setRevealed] = useState(false)
   const [busy, setBusy] = useState('')
   const busyRef = useRef(false)
-  const [message, setMessage] = useState(initial.code ? '已读取本设备记住的配对码；尚未检查云端，请按需手动同步。' : '')
+  const [message, setMessage] = useState(initial.code ? '已找到此设备保存的配对码，尚未同步。需要更新记录时，请点击“手动同步”。' : '')
   const [error, setError] = useState('')
   const [storageWarning, setStorageWarning] = useState(initial.warning)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -98,12 +98,12 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
       if (!deviceStorage) throw new Error()
       deviceStorage.setItem(storageKey, JSON.stringify({ version: 1, code: pairingCode, lastSynced: synced }))
       setStorageWarning('')
-    } catch { setStorageWarning('浏览器无法记住配对码，本次只保留在当前页面。请显示并妥善保存配对码，关闭页面后可能无法恢复备份。') }
+    } catch { setStorageWarning('浏览器无法记住配对码。请先显示并另行保存，关闭页面后可能无法找回备份。') }
   }
 
   function forgetCode() {
     try { deviceStorage?.removeItem(storageKey); setStorageWarning(''); return true } catch {
-      setStorageWarning('浏览器无法移除已保存的配对码。请在浏览器设置中清除此网站数据；清除前先导出本地学习记录。')
+      setStorageWarning('浏览器未能忘记配对码。请先导出学习记录，再到浏览器设置中清除词星球的网站数据。')
       return false
     }
   }
@@ -135,7 +135,7 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
 
   function create() {
     if (!ready || !consented || code.trim()) return
-    void run('正在加密并创建备份…', async () => {
+    void run('正在保存加密备份…', async () => {
       const data = await localSnapshot()
       const pairingCode = generatePairingCode()
       // Preserve recovery material before the request, including when its result
@@ -150,7 +150,7 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
 
   function synchronize() {
     if (!ready || !consented) return
-    void run('正在读取、校验并合并记录…', async () => {
+    void run('正在同步学习记录…', async () => {
       const pairingCode = (activeCode || code).trim()
       parsePairingCode(pairingCode)
       const local = await localSnapshot()
@@ -163,7 +163,7 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
         throw new Error('local-import-failed')
       }
       recordSuccess(pairingCode)
-      setMessage(`同步完成，两端已合并 ${checked.events.length} 条记录。新产生的记录请再次手动同步。`)
+      setMessage(`同步完成，已合并 ${checked.events.length} 条学习记录。学完后请再次手动同步。`)
       onSynced?.()
     })
   }
@@ -172,7 +172,7 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
     if (busyRef.current) return
     forgetCode()
     setCode(''); setActiveCode(''); setLastSynced(null); setRemember(false); setRevealed(false); setConfirmDelete(false); setError('')
-    setMessage('此设备已断开，云端备份和本地学习记录仍保留。再次连接需要原配对码。')
+    setMessage('已断开此设备。云端备份和此设备的学习记录仍保留，再次连接需要原配对码。')
   }
 
   function copyCode() {
@@ -189,14 +189,14 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
       await deleteVault(apiOrigin, activeCode, clientOptions)
       forgetCode()
       setCode(''); setActiveCode(''); setLastSynced(null); setRemember(false); setRevealed(false); setConfirmDelete(false)
-      setMessage('云端备份已删除，本地学习记录仍保留。其他设备无法再通过此配对码连接。')
+      setMessage('云端备份已删除，此设备的学习记录仍保留。其他设备无法再用这个配对码连接。')
     })
   }
 
   return <section className="sync-data-controls" aria-labelledby={`${identity}-title`} aria-busy={!!busy}>
-    <header><ShieldCheck aria-hidden="true" weight="duotone" /><div><p className="status-pill">可选 · 手动同步</p><h2 id={`${identity}-title`}>加密备份与设备配对</h2><p>无需账号。仅在你操作时备份学习记录，不上传姓名或录音。</p></div></header>
-    <p className="sync-data-controls__notice">配对码等同密码，请勿分享给他人；丢失后无法找回。云端备份在 180 天未更新后失效。本地导出仍可继续使用，请另存一份重要记录。</p>
-    {!ready && <p role="status">云端服务尚未启用，当前请使用本地导出和导入。</p>}
+    <header><ShieldCheck aria-hidden="true" weight="duotone" /><div><p className="status-pill">手动同步</p><h2 id={`${identity}-title`}>换设备继续学</h2><p>不用注册，按需备份学习记录。姓名和录音不会上传。</p></div></header>
+    <p className="sync-data-controls__notice">请像保管密码一样保管配对码，勿分享给他人，丢失后无法找回。云端备份连续 180 天未更新会失效。</p>
+    {!ready && <p role="status">暂时无法跨设备同步。可以先导出学习记录，再到新设备导入。</p>}
     <label className="sync-data-controls__check"><input type="checkbox" checked={consented} disabled={!!busy} onChange={event => setConsented(event.target.checked)} />我同意将学习记录加密后备份到云端</label>
     <label className="sync-data-controls__check"><input type="checkbox" checked={remember} disabled={!!busy} onChange={event => {
       if (event.target.checked) { setRemember(true); if (activeCode) saveCode(activeCode, lastSynced) }
@@ -208,13 +208,14 @@ function SyncDataControlsSession({ api, apiOrigin, profileId = 'local-child', on
         <input id={`${identity}-code`} type={revealed ? 'text' : 'password'} value={code} onChange={event => setCode(event.target.value)} readOnly={!!activeCode} disabled={!!busy} autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={100} placeholder="粘贴另一台设备的配对码" aria-describedby={`${identity}-code-help`} />
         <div className="sync-data-controls__code-buttons"><Pressable disabled={!!busy || !code} onClick={() => setRevealed(value => !value)}>{revealed ? '隐藏配对码' : '显示配对码'}</Pressable><Pressable disabled={!!busy || !code.trim()} onClick={copyCode}>复制配对码</Pressable></div>
       </div>
-      <p id={`${identity}-code-help`}>先在旧设备创建备份，再在新设备输入完整配对码并连接。本站不会自动同步。</p>
+      <p id={`${identity}-code-help`}>已有备份？粘贴另一台设备的配对码，即可连接。</p>
     </div>
     <div className="sync-data-controls__actions">
       {!activeCode && <><Pressable disabled={!!busy || !ready || !consented || !!code.trim()} onClick={create}><CloudArrowUp aria-hidden="true" />创建加密备份</Pressable><Pressable disabled={!!busy || !ready || !consented || !code.trim()} onClick={synchronize}><Link aria-hidden="true" />连接并合并记录</Pressable></>}
       {activeCode && <><Pressable disabled={!!busy || !ready || !consented} onClick={synchronize}><ArrowsClockwise aria-hidden="true" />手动同步</Pressable><Pressable disabled={!!busy} onClick={disconnect}>断开此设备</Pressable>{!confirmDelete && <Pressable disabled={!!busy || !apiOrigin} onClick={() => setConfirmDelete(true)}><Trash aria-hidden="true" />删除云端备份</Pressable>}</>}
     </div>
-    {confirmDelete && <div className="sync-data-controls__confirm"><p>确认删除此配对码对应的云端备份？所有已配对设备都会失去此云端副本，本地记录保留。</p><Pressable disabled={!!busy} onClick={removeCloudCopy}>确认删除云端备份</Pressable><Pressable disabled={!!busy} onClick={() => setConfirmDelete(false)}>取消</Pressable></div>}
+    {confirmDelete && <div className="sync-data-controls__confirm"><p>确定删除云端备份吗？其他设备也将无法用这个配对码恢复记录，各设备已保存的记录不会删除。</p><Pressable disabled={!!busy} onClick={removeCloudCopy}>确认删除云端备份</Pressable><Pressable disabled={!!busy} onClick={() => setConfirmDelete(false)}>取消</Pressable></div>}
+    <details className="sync-data-controls__guide"><summary>怎么使用</summary><ol><li>在旧设备点击“创建加密备份”，并保存好配对码。</li><li>在新设备打开词星球，粘贴配对码，点击“连接并合并记录”。</li><li>学完后，在当前设备点击“手动同步”；换设备时，也请先同步一次。词星球不会自动同步。</li></ol><p>重要的学习记录，建议再导出一份文件备份。</p></details>
     {lastSynced && <p className="sync-data-controls__last">上次成功同步：<time dateTime={new Date(lastSynced).toISOString()}>{new Date(lastSynced).toLocaleString('zh-CN')}</time></p>}
     {(busy || message) && <p role="status" aria-live="polite">{busy || message}</p>}
     {error && <p role="alert">{error}</p>}

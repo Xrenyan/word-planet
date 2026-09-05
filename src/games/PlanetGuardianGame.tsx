@@ -1,11 +1,11 @@
 import { ArrowLeft, ArrowRight, ShieldCheck, SpeakerHigh, Star } from '@phosphor-icons/react'
 import { FormEvent, useEffect, useId, useMemo, useReducer, useRef } from 'react'
 import { WordArtwork } from '../learning/WordArtwork'
-import { loadWordAudio, type WordAudioResult } from '../features/pronunciation/audioClient'
+import { loadWordAudio } from '../features/pronunciation/audioClient'
 import { playAudioUrl } from '../features/pronunciation/playback'
 import { createSpeechController, speechRates, type SpeechDependencies, type SpeechResult } from '../pronunciation/speech'
 import type { Accent } from '../pronunciation/voiceCatalog'
-import { gameScopeLabel, type GameAttempt, type GameWord } from './engine'
+import type { GameAttempt, GameWord } from './engine'
 import { createGuardianStages, type GuardianStage } from './guardianEngine'
 
 type PlanetGuardianGameProps = { words: readonly GameWord[]; seed?: number; onAttempt?: (attempt: GameAttempt) => void; onReviewMiss?: (word: GameWord) => void; onReturnToLearning: () => void; onBackToHub: () => void; speechDependencies?: SpeechDependencies; audioLoader?: typeof loadWordAudio; audioPlayer?: typeof playAudioUrl }
@@ -49,20 +49,18 @@ function guardianReducer(stages: readonly GuardianStage[], state: GuardianState,
 function normalizeSpelling(value: string) { return value.trim().toLocaleLowerCase('en-US') }
 function speechMessage(result: SpeechResult) {
   switch (result.status) {
-    case 'spoken': return result.rate === speechRates.slow ? '慢速系统语音播放完成。' : '系统语音播放完成。'
-    case 'unavailable': return result.accent === 'en-GB' ? '英式系统语音暂不可用。' : '美式系统语音暂不可用。'
-    case 'unsupported': return '此浏览器暂不支持系统语音。'
+    case 'spoken': return result.rate === speechRates.slow ? '慢速发音播放完成。' : '发音播放完成。'
+    case 'unavailable': return result.accent === 'en-GB' ? '英式发音暂时播不了，看看下方提示吧。' : '美式发音暂时播不了，看看下方提示吧。'
+    case 'unsupported': return '暂时播不了声音，看看下方提示吧。'
     case 'invalid-term': return '这个单词暂时不能播放。'
-    case 'invalid-rate': return '播放速度设置不可用。'
-    case 'cancelled': return '已切换到最新一次系统语音请求。'
-    case 'error': return '系统语音没有成功播放，可以使用无声提示继续。'
+    case 'invalid-rate': return '暂时播不了，请再试一次。'
+    case 'cancelled': return '正在切换发音…'
+    case 'error': return '暂时播不了声音，看看下方提示吧。'
   }
 }
-function audioMessage(result: Extract<WordAudioResult, { status: 'audio' }>, accent: Accent) {
+function audioMessage(accent: Accent) {
   const accentLabel = accent === 'en-GB' ? '英式' : '美式'
-  if (result.source === 'cache') return `${accentLabel}发音播放完成 · 已从本机缓存读取。`
-  if (result.source === 'local') return `${accentLabel}发音播放完成 · 本机语音。`
-  return `${accentLabel}发音播放完成 · 在线语音。`
+  return `${accentLabel}发音播放完成。`
 }
 function sourceWord(stage: GuardianStage) { return stage.round.sourceWords.find((word) => word.id === stage.round.target.id)! }
 function outcomeLabel(index: number, outcome: StageOutcome, current: boolean) {
@@ -111,14 +109,14 @@ function PlanetGuardianSession({ stages, onAttempt, onReviewMiss, onReturnToLear
     playbackRef.current = controller
     const request = ++requestGenerationRef.current
     const useInjectedDeviceSpeech = Object.keys(speechDependencies).length > 0
-    dispatch({ type: 'speech-pending', stageId: stage.id, message: useInjectedDeviceSpeech ? '正在请求系统语音…' : `正在加载${accent === 'en-GB' ? '英式' : '美式'}发音…` })
+    dispatch({ type: 'speech-pending', stageId: stage.id, message: `正在准备${accent === 'en-GB' ? '英式' : '美式'}发音…` })
     if (!useInjectedDeviceSpeech) {
       const audio = await audioLoader(targetWord.id, accent, targetWord.term)
       if (request !== requestGenerationRef.current) return
       if (audio.status === 'audio') {
         try {
           await audioPlayer(audio.url, { signal: controller.signal })
-          if (request === requestGenerationRef.current) dispatch({ type: 'speech-result', stageId: stage.id, message: audioMessage(audio, accent), fallbackAccent: null })
+          if (request === requestGenerationRef.current) dispatch({ type: 'speech-result', stageId: stage.id, message: audioMessage(accent), fallbackAccent: null })
           return
         } catch {
           if (request !== requestGenerationRef.current) return
@@ -139,14 +137,14 @@ function PlanetGuardianSession({ stages, onAttempt, onReviewMiss, onReturnToLear
   function backToHub() { requestGenerationRef.current += 1; speechController.dispose(); onBackToHub() }
 
   if (state.finished) return <section className="guardian-game guardian-game--complete" aria-labelledby={titleId}>
-    <div className="guardian-game__complete-badge"><ShieldCheck aria-hidden="true" weight="fill" /></div><p className="demo-disclaimer">{gameScopeLabel(stages[0].round.scope)}</p>
+    <div className="guardian-game__complete-badge"><ShieldCheck aria-hidden="true" weight="fill" /></div><p className="demo-disclaimer">游戏星岛</p>
     <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>三层护盾已点亮</h2><p className="guardian-game__result">首次答对 {firstTryCount} / 3 层</p>
     {lookAgainWords.length ? <p>再看看：{lookAgainWords.map((word) => word.term).join('、')}</p> : <p>这一局没有需要再看的词。</p>}
-    <p>“首次答对”是本局表现，可以回到学习继续巩固。</p><div className="guardian-game__complete-actions"><button className="game-back" type="button" onClick={backToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button><button className="guardian-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button></div>
+    <p>星球又亮起来啦！再选个游戏，或回去学单词吧。</p><div className="guardian-game__complete-actions"><button className="game-back" type="button" onClick={backToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button><button className="guardian-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button></div>
   </section>
 
   return <section className="guardian-game" aria-labelledby={titleId}>
-    <header className="guardian-game__header"><div><button className="game-back" type="button" onClick={backToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button><p className="demo-disclaimer">{gameScopeLabel(stage.round.scope)}</p><h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>守护星球</h2><p>点亮三层星球护盾，完成看图、听音和拼写挑战。</p></div><ShieldCheck aria-hidden="true" weight="duotone" /></header>
+    <header className="guardian-game__header"><div><button className="game-back" type="button" onClick={backToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button><p className="demo-disclaimer">游戏星岛</p><h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>守护星球</h2><p>点亮三层星球护盾，完成看图、听音和拼写挑战。</p></div><ShieldCheck aria-hidden="true" weight="duotone" /></header>
     <div className="guardian-game__progress" aria-label={`护盾进度，第 ${state.stageIndex + 1} 层，共 3 层`}><strong>第 {state.stageIndex + 1} / 3 层</strong><ol aria-label="各层护盾状态">{stages.map((item, index) => { const label = outcomeLabel(index, state.outcomes[item.id], index === state.stageIndex); return <li key={item.id} data-outcome={state.outcomes[item.id]} data-current={index === state.stageIndex}><span className="visually-hidden">{label}</span><ShieldCheck aria-hidden="true" weight={state.outcomes[item.id] === 'pending' ? 'regular' : 'fill'} /></li> })}</ol></div>
     {stage.mode === 'picture-choice' && <div className="guardian-game__stage guardian-game__stage--picture"><figure data-testid="guardian-picture-target" data-word-id={stage.round.target.id}><WordArtwork revealTerm={false} wordId={stage.round.target.id} meaningZh={stage.round.target.meaningZh} image={stage.round.target.image} term={stage.round.target.term} /><figcaption>选择与“{stage.round.target.meaningZh}”对应的英文</figcaption></figure><div className="guardian-game__choices" aria-label="看图选择英文">{stage.round.choices.map((choice) => <button key={choice.id} type="button" data-word-id={choice.id} disabled={solved} onClick={() => choice.id === stage.round.target.id ? markSolved() : recordMiss('再看看图片和中文提示，试一次吧！')}>{choice.term}</button>)}</div></div>}
     {stage.mode === 'audio-choice' && <div className="guardian-game__stage guardian-game__stage--audio" data-testid="guardian-audio-target" data-word-id={stage.round.target.id}><div className="guardian-game__audio-panel"><SpeakerHigh aria-hidden="true" weight="duotone" /><h3>听一听，选择对应的中文</h3><div className="guardian-game__audio-actions"><button type="button" disabled={solved} onClick={() => play('en-GB')} aria-label="播放守护关英式发音">英式发音</button><button type="button" disabled={solved} onClick={() => play('en-US')} aria-label="播放守护关美式发音">美式发音</button></div>{state.fallbackAccent && <p className="guardian-game__fallback">无声提示（{state.fallbackAccent === 'en-GB' ? '英式' : '美式'}）：{state.fallbackAccent === 'en-GB' ? `英 ${targetWord.ipaUk}` : `美 ${targetWord.ipaUs}`} · {targetWord.meaningZh}</p>}</div><div className="guardian-game__choices" aria-label="听音选择中文">{stage.round.choices.map((choice) => <button key={choice.id} type="button" data-word-id={choice.id} aria-label={`选择中文：${choice.meaningZh}`} disabled={solved} onClick={() => choice.id === stage.round.target.id ? markSolved() : recordMiss('再听一次，或者使用无声提示继续吧！')}>{choice.meaningZh}</button>)}</div></div>}
@@ -154,6 +152,6 @@ function PlanetGuardianSession({ stages, onAttempt, onReviewMiss, onReturnToLear
     {state.feedback && <p className="guardian-game__feedback" role="status" aria-live="polite">{state.feedback}</p>}
     {solved && <button ref={nextRef} className="guardian-game__next" type="button" onClick={advance}>{state.stageIndex + 1 === stages.length ? '查看守护结果' : '点亮下一层'} <ArrowRight aria-hidden="true" weight="bold" /></button>}
     <ol className="guardian-game__stars" aria-label={`本局首次答对 ${firstTryCount} 层`}>{stages.map((item, index) => <li key={item.id}><span className="visually-hidden">{`星标·${outcomeLabel(index, state.outcomes[item.id], index === state.stageIndex)}`}</span><Star aria-hidden="true" weight={state.outcomes[item.id] === 'solved-first-try' ? 'fill' : 'regular'} /></li>)}</ol>
-    <p className="guardian-game__note">本关友好无对抗；每次真实作答都会用于安排后续复习。</p>
+    <p className="guardian-game__note">一层一层来，答错了也能再试一次。</p>
   </section>
 }

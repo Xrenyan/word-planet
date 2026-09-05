@@ -38,10 +38,10 @@ export function PronunciationControls({
   showIpa?: boolean
   showRecorder?: boolean
 }) {
-  const [audioMessage, setAudioMessage] = useState('选择英式或美式发音')
+  const [audioMessage, setAudioMessage] = useState('')
   const [activeAccent, setActiveAccent] = useState<Accent | null>(null)
   const [preparedAudio, setPreparedAudio] = useState<Partial<Record<Accent, WordAudioResult>>>({})
-  const [recordingMessage, setRecordingMessage] = useState('录音只保留在当前页面，可回放跟读；本站不会生成虚假分数。')
+  const [recordingMessage, setRecordingMessage] = useState('听一遍，再读一遍。')
   const [recordingUrl, setRecordingUrl] = useState<string | null>(null)
   const [recording, setRecording] = useState(false)
   const [recordingPending, setRecordingPending] = useState(false)
@@ -52,7 +52,6 @@ export function PronunciationControls({
     if (!element) replayRef.current?.pause()
     replayRef.current = element
   }, [])
-  const audioInteractionRef = useRef(false)
   const playbackRef = useRef<AbortController | null>(null)
   const generation = useRef(0)
   const recordingRequest = useRef(false)
@@ -65,23 +64,15 @@ export function PronunciationControls({
     setRecordingUrl(null)
     setRecordingPending(false)
     recordingRequest.current = false
-    setRecordingMessage('录音只保留在当前单词，可回放跟读；本站不会生成虚假分数。')
-    audioInteractionRef.current = false
+    setRecordingMessage('听一遍，再读一遍。')
     setPreparedAudio({})
-    setAudioMessage('正在预载英式和美式发音…')
+    setAudioMessage('')
     void Promise.all((['en-GB', 'en-US'] as const).map(async (locale) => [locale, await loadAudio(word.id, locale, word.term)] as const))
       .then((entries) => {
         if (!active) return
         setPreparedAudio(Object.fromEntries(entries))
-        if (!audioInteractionRef.current) {
-          const actualAudioReady = entries.every(([, result]) => result.status === 'audio')
-          const deviceOnly = entries.every(([, result]) => result.status === 'device-fallback')
-          setAudioMessage(actualAudioReady ? '英式、美式发音已就绪' : deviceOnly ? '点击时检查设备英式或美式语音' : '发音准备完成；部分语音暂不可用')
-        }
       })
-      .catch(() => {
-        if (active && !audioInteractionRef.current) setAudioMessage('设备语音仍可使用')
-      })
+      .catch(() => { /* The play action retries and reports any failure. */ })
     return () => {
       active = false
       generation.current += 1
@@ -101,9 +92,9 @@ export function PronunciationControls({
     const controller = new AbortController()
     playbackRef.current = controller
     const current = () => !controller.signal.aborted
-    audioInteractionRef.current = true
     setActiveAccent(locale)
     const accentLabel = label(locale)
+    setAudioMessage(`正在准备${accentLabel}发音`)
     try {
       const result = preparedAudio[locale] ?? await loadAudio(word.id, locale, word.term)
       if (!current()) return
@@ -111,8 +102,7 @@ export function PronunciationControls({
         setAudioMessage(`${accentLabel}发音正在播放`)
         await playUrl(result.url, { signal: controller.signal, rate: slow ? .72 : 1 })
         if (!current()) return
-        const sourceLabel = result.source === 'cache' ? '缓存' : result.source === 'local' ? '本地' : '云端'
-        setAudioMessage(`${accentLabel}${sourceLabel}发音播放完成`)
+        setAudioMessage(`${accentLabel}发音播放完成`)
         return
       }
       if (result.status === 'device-fallback') {
@@ -120,7 +110,7 @@ export function PronunciationControls({
         const speaking = deviceSpeak(word.term, locale, slow ? .72 : .86)
         const spoken = await speaking
         if (!current()) return
-        setAudioMessage(spoken.status === 'spoken' ? `${accentLabel}设备语音播放完成` : `${accentLabel}语音暂不可用，请检查系统语音设置`)
+        setAudioMessage(spoken.status === 'spoken' ? `${accentLabel}发音播放完成` : `${accentLabel}发音暂时无法播放，请家长检查一下声音设置`)
         return
       }
       setAudioMessage(`${accentLabel}语音暂不可用`)
@@ -189,7 +179,7 @@ export function PronunciationControls({
       const result = await recorderRef.current?.stop()
       if (request !== generation.current) return
       setRecordingUrl(result?.url ?? null)
-      setRecordingMessage(result ? '录音已保留在当前页面，请立即回放对照；本站不提供云端评分。' : '没有录到声音，可以再试一次。')
+      setRecordingMessage(result ? '读好啦！听听自己的声音，再和示范比一比。' : '没有录到声音，可以再试一次。')
     } catch {
       if (request === generation.current) setRecordingMessage('录音未能保存，可以再试一次；发音播放仍可使用。')
     } finally {
@@ -205,10 +195,9 @@ export function PronunciationControls({
     <section className="pronunciation-controls" aria-label="发音与跟读">
       {showIpa && <div className="pronunciation-controls__ipa">
         {word.ipaStatus === 'dictionary-api' || word.ipaStatus === 'unavailable'
-          ? <span>参考 IPA <b>{word.ipaStatus === 'unavailable' ? '音标待核' : word.ipaUs}</b></span>
+          ? <span>参考音标 <b>{word.ipaStatus === 'unavailable' ? '暂缺' : word.ipaUs}</b></span>
           : <><span>英 <b className="today-dashboard__ipa--uk">{word.ipaUk}</b></span><span>美 <b className="today-dashboard__ipa--us">{word.ipaUs}</b></span>{word.ipaCommon && <span>通用参考 <b>{word.ipaCommon}</b></span>}</>}
       </div>}
-      {showIpa && word.ipaNote && <details className="pronunciation-source"><summary>音标来源与说明</summary><p>{word.ipaNote}</p><a href={word.ipaSource} target="_blank" rel="noreferrer">查看词典原词条</a></details>}
       <div className="pronunciation-controls__actions">
         {(['en-GB', 'en-US'] as const).map((locale) => (
           <Pressable
@@ -216,7 +205,6 @@ export function PronunciationControls({
             className="audio-action"
             aria-label={`播放${label(locale)}发音`}
             disabled={recording || recordingPending}
-            onPointerDown={() => { audioInteractionRef.current = true; setAudioMessage(`正在准备${label(locale)}发音`) }}
             onClick={() => void play(locale)}
           >
             <SpeakerHigh aria-hidden="true" weight="fill" />{activeAccent === locale ? '播放中' : `${label(locale)}发音`}
@@ -227,7 +215,6 @@ export function PronunciationControls({
         </Pressable>
       </div>
       <p className="pronunciation-controls__status" role="status">{audioMessage}</p>
-      {showIpa && <small className="pronunciation-source">本站英美合成语音 · 非教材原声录音</small>}
       {showRecorder && <div className="pronunciation-controls__follow">
         <Pressable className="follow-action" disabled={recordingPending} onClick={() => void (recording ? stopRecording() : startRecording())}>
           {recording ? <PauseCircle aria-hidden="true" weight="fill" /> : <Microphone aria-hidden="true" weight="fill" />}
