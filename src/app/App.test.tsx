@@ -17,6 +17,77 @@ function api(): WordPlanetApi {
 const recorder = { record: vi.fn().mockResolvedValue('synced' as const), flush: vi.fn().mockResolvedValue(0) }
 
 describe('App enterprise data paths', () => {
+  it('retains the actual item when leaving a pending review through the main navigation', async () => {
+    const user = userEvent.setup()
+    const client = api()
+    const word = { id: 'aunt', bookId: 'g4-upper', unit: 6, order: 1, term: 'aunt', meaningZh: '姑母', ipaUk: '/ɑːnt/', ipaUs: '/ænt/', image: { src: '/aunt.png', alt: '姑母', license: 'test' }, source: { title: 'Unit', url: 'https://example.com', page: 1 } }
+    const item = { word, misses: 1, correct: 0, weakness: 1, lastAttemptAt: 300 }
+    client.getReview = vi.fn().mockResolvedValueOnce({ profileId: 'local-child', items: [item] }).mockResolvedValue({ profileId: 'local-child', items: [] })
+    window.history.replaceState(null, '', '#mistakes')
+    render(<App apiClient={client} progressRecorder={{ record: () => new Promise<'saved'>(() => {}), flush: vi.fn().mockResolvedValue(0) }} />)
+
+    await user.click(await screen.findByRole('button', { name: '复习 aunt' }))
+    await user.type(await screen.findByLabelText('根据中文写英文'), 'aunt{enter}')
+    await user.click(screen.getByRole('link', { name: '错词本' }))
+    expect(await screen.findByRole('button', { name: '复习 aunt' })).toBeVisible()
+    expect(screen.getByRole('alert')).toHaveTextContent('保存还没确认')
+    expect(client.getReview).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps an unconfirmed review item after reopening without an answer until a later save is confirmed', async () => {
+    const user = userEvent.setup()
+    const client = api()
+    const word = { id: 'aunt', bookId: 'g4-upper', unit: 6, order: 1, term: 'aunt', meaningZh: '姑母', ipaUk: '/ɑːnt/', ipaUs: '/ænt/', image: { src: '/aunt.png', alt: '姑母', license: 'test' }, source: { title: 'Unit', url: 'https://example.com', page: 1 } }
+    const item = { word, misses: 1, correct: 0, weakness: 1, lastAttemptAt: 300 }
+    const record = vi.fn().mockResolvedValueOnce('memory-only').mockResolvedValue('saved')
+    client.getReview = vi.fn().mockResolvedValueOnce({ profileId: 'local-child', items: [item] }).mockResolvedValue({ profileId: 'local-child', items: [] })
+    window.history.replaceState(null, '', '#mistakes')
+    render(<App apiClient={client} progressRecorder={{ record, flush: vi.fn().mockResolvedValue(0) }} />)
+
+    await user.click(await screen.findByRole('button', { name: '复习 aunt' }))
+    await user.type(await screen.findByLabelText('根据中文写英文'), 'aunt{enter}')
+    await screen.findByRole('heading', { name: '这组复习完成啦！' })
+    await user.click(screen.getByRole('button', { name: '返回错词本' }))
+    await user.click(await screen.findByRole('button', { name: '复习 aunt' }))
+    await user.click(await screen.findByRole('button', { name: '返回错词本' }))
+    expect(await screen.findByRole('button', { name: '复习 aunt' })).toBeVisible()
+    expect(screen.getByRole('alert')).toHaveTextContent('保存还没确认')
+    expect(record).toHaveBeenCalledTimes(1)
+
+    await user.click(screen.getByRole('button', { name: '复习 aunt' }))
+    await user.type(await screen.findByLabelText('根据中文写英文'), 'aunt{enter}')
+    await screen.findByRole('heading', { name: '这组复习完成啦！' })
+    await user.click(screen.getByRole('button', { name: '返回错词本' }))
+    expect(await screen.findByText('现在没有需要复习的单词')).toBeVisible()
+    expect(screen.queryByText('保存还没确认，这些词先为你保留。')).not.toBeInTheDocument()
+  })
+
+  it.each(['saved', 'memory-only'] as const)('returns from a one-word review with %s writes and refreshes the real queue', async status => {
+    const user = userEvent.setup()
+    const client = api()
+    const word = { id: 'aunt', bookId: 'g4-upper', unit: 6, order: 1, term: 'aunt', meaningZh: '姑母', ipaUk: '/ɑːnt/', ipaUs: '/ænt/', image: { src: '/aunt.png', alt: '姑母', license: 'test' }, source: { title: 'Unit', url: 'https://example.com', page: 1 } }
+    const item = { word, misses: 1, correct: 0, weakness: 1, lastAttemptAt: 300 }
+    client.getReview = vi.fn().mockResolvedValueOnce({ profileId: 'local-child', items: [item] }).mockResolvedValue({ profileId: 'local-child', items: [] })
+    client.getWords = vi.fn().mockResolvedValue({ bookId: word.bookId, words: [word, { ...word, id: 'unrelated', term: 'uncle' }] })
+    window.history.replaceState(null, '', '#mistakes')
+    render(<App apiClient={client} progressRecorder={{ record: vi.fn().mockResolvedValue(status), flush: vi.fn().mockResolvedValue(0) }} />)
+
+    await user.click(await screen.findByRole('button', { name: '复习 aunt' }))
+    expect(await screen.findByText('第 1 / 1 词')).toBeVisible()
+    await user.type(screen.getByLabelText('根据中文写英文'), 'aunt{enter}')
+    await screen.findByRole('heading', { name: '这组复习完成啦！' })
+    await user.click(screen.getByRole('button', { name: '返回错词本' }))
+    expect(await screen.findByRole('heading', { name: '需要再练的单词' })).toBeVisible()
+    expect(window.location.hash).toBe('#mistakes')
+    expect(client.getReview).toHaveBeenCalledTimes(2)
+    if (status === 'saved') expect(await screen.findByText('现在没有需要复习的单词')).toBeVisible()
+    else {
+      expect(await screen.findByRole('button', { name: '复习 aunt' })).toBeVisible()
+      expect(screen.getByRole('alert')).toHaveTextContent('保存还没确认')
+    }
+    expect(client.getWords).not.toHaveBeenCalled()
+  })
+
   it('refreshes backup records after a round trip through practice', async () => {
     const client = api()
     const word = { id: 'aunt', bookId: 'g3-upper', unit: 2, order: 1, term: 'aunt', meaningZh: '姑母', ipaUk: '/ɑːnt/', ipaUs: '/ænt/', image: { src: '/aunt.png', alt: '姑母', license: 'test' }, source: { title: 'Unit', url: 'https://example.com', page: 1 } }

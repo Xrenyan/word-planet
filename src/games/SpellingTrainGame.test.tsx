@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -18,6 +18,36 @@ function visibleLetterBank() {
 }
 
 describe('SpellingTrainGame', () => {
+  it('separates first spelling answers from eventual completion and ignores duplicate solved submits and advances', async () => {
+    const user = userEvent.setup()
+    const onAttempt = vi.fn(), onComplete = vi.fn(), onReplay = vi.fn(), onNextChallenge = vi.fn()
+    const props = { words: demoWords, rounds: 2, seed: 8, onAttempt, onComplete, onReplay, onNextChallenge, onBackToHub: vi.fn(), onReturnToLearning: vi.fn() }
+    const view = render(<SpellingTrainGame {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: '检查拼写' }))
+    expect(onAttempt).not.toHaveBeenCalled()
+    await user.type(screen.getByLabelText('输入英文单词'), 'wrong{enter}')
+    await user.clear(screen.getByLabelText('输入英文单词'))
+    await user.type(screen.getByLabelText('输入英文单词'), targetTerm())
+    const check = screen.getByRole('button', { name: '检查拼写' })
+    act(() => { check.click(); check.click() })
+    expect(onAttempt).toHaveBeenCalledTimes(2)
+    const next = screen.getByRole('button', { name: '下一站' })
+    act(() => { next.click(); next.click() })
+    expect(screen.getByText('第 2 / 2 轮')).toBeVisible()
+    expect(onComplete).not.toHaveBeenCalled()
+    await user.type(screen.getByLabelText('输入英文单词'), `${targetTerm()}{enter}`)
+    const finish = screen.getByRole('button', { name: '看看结果' })
+    act(() => { finish.click(); finish.click() })
+    expect(screen.getByText('完成 2 / 2 轮')).toBeVisible()
+    expect(screen.getByText('首次拼对 1 / 2 轮')).toBeVisible()
+    expect(onComplete).toHaveBeenCalledExactlyOnceWith({ completedRounds: 2, totalRounds: 2, firstTryCorrect: 1 })
+    view.rerender(<SpellingTrainGame {...props} />)
+    expect(onComplete).toHaveBeenCalledOnce()
+    await user.click(screen.getByRole('button', { name: '再玩一次' }))
+    await user.click(screen.getByRole('button', { name: '下一关' }))
+    expect(onReplay).toHaveBeenCalledOnce(); expect(onNextChallenge).toHaveBeenCalledOnce()
+  })
+
   it('shows the supplied target image, Chinese prompt, letter slots and accessible input without leaking the ordered answer', () => {
     render(<SpellingTrainGame words={demoWords} rounds={2} seed={5} onBackToHub={vi.fn()} onReturnToLearning={vi.fn()} />)
 
@@ -93,7 +123,8 @@ describe('SpellingTrainGame', () => {
     }
 
     expect(screen.getByRole('heading', { name: '小火车到站啦' })).toHaveFocus()
-    expect(screen.getByText('拼对 2 / 2 轮')).toBeVisible()
+    expect(screen.getByText('完成 2 / 2 轮')).toBeVisible()
+    expect(screen.getByText('首次拼对 2 / 2 轮')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '回到学习' }))
     expect(onReturnToLearning).toHaveBeenCalledOnce()
   })

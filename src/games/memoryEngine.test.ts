@@ -5,6 +5,15 @@ import { demoWords } from '../test/fixtures/gameWords'
 import { createMemoryDeck } from './memoryEngine'
 
 describe('createMemoryDeck', () => {
+  it.each([2, 3, 4] as const)('supports a %i-group challenge without inventing missing source words', groups => {
+    expect(createMemoryDeck(demoWords, 21, groups)).toHaveLength(groups * 3)
+    expect(createMemoryDeck(demoWords.slice(0, 1), 21, groups)).toHaveLength(3)
+  })
+
+  it.each([0, 1, 5, 2.5, Number.NaN])('rejects invalid challenge group count %s', groups => {
+    expect(() => createMemoryDeck(demoWords, 21, groups as 2)).toThrow(/group/i)
+  })
+
   it('limits a large textbook unit to four distinct groups instead of an unmanageable wall of cards', () => {
     const words = Array.from({length: 30}, (_, i) => ({...demoWords[0], id: `demo-word-${i}`, term: `word${i}`}))
     const deck = createMemoryDeck(words, 21)

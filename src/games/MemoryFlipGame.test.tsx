@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -6,6 +6,35 @@ import { demoWords } from '../test/fixtures/gameWords'
 import { MemoryFlipGame } from './MemoryFlipGame'
 
 describe('MemoryFlipGame', () => {
+  it('keeps ordinary memory mismatches out of vocabulary misses and reports a truthful run once', async () => {
+    const user = userEvent.setup()
+    const onAttempt = vi.fn(), onComplete = vi.fn(), onReplay = vi.fn(), onNextChallenge = vi.fn()
+    const props = { words: demoWords, groups: 2 as const, seed: 5, onAttempt, onComplete, onReplay, onNextChallenge, onBackToHub: vi.fn(), onReturnToLearning: vi.fn() }
+    const view = render(<MemoryFlipGame {...props} />)
+    const cards = screen.getAllByRole('button', { name: /未翻开的记忆卡片/ })
+    expect(cards).toHaveLength(6)
+    expect(screen.queryByRole('button', { name: '再玩一次' })).not.toBeInTheDocument()
+    const wordIds = [...new Set(cards.map(card => card.dataset.wordId!))]
+    const first = cards.filter(card => card.dataset.wordId === wordIds[0])
+    const second = cards.filter(card => card.dataset.wordId === wordIds[1])
+    await user.click(first[0]); await user.click(first[1]); await user.click(second[0])
+    expect(onAttempt).not.toHaveBeenCalled()
+    expect(onComplete).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: '继续翻牌' }))
+    for (const group of [first, second]) {
+      for (const card of group.slice(0, 2)) await user.click(card)
+      act(() => { group[2].click(); group[2].click() })
+    }
+    expect(onAttempt).toHaveBeenCalledTimes(2)
+    expect(onAttempt.mock.calls.every(([attempt]) => attempt.outcome === 'correct')).toBe(true)
+    expect(onComplete).toHaveBeenCalledExactlyOnceWith({ completedRounds: 2, totalRounds: 2, firstTryCorrect: 0 })
+    view.rerender(<MemoryFlipGame {...props} onComplete={onComplete} />)
+    expect(onComplete).toHaveBeenCalledOnce()
+    await user.click(screen.getByRole('button', { name: '再玩一次' }))
+    await user.click(screen.getByRole('button', { name: '下一关' }))
+    expect(onReplay).toHaveBeenCalledOnce(); expect(onNextChallenge).toHaveBeenCalledOnce()
+  })
+
   it('starts with real concealed button cards and accessible unpressed state', () => {
     render(<MemoryFlipGame words={demoWords.slice(0, 2)} seed={3} onBackToHub={vi.fn()} onReturnToLearning={vi.fn()} />)
 

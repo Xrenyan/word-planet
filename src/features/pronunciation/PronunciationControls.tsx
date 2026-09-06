@@ -67,12 +67,12 @@ export function PronunciationControls({
     setRecordingMessage('听一遍，再读一遍。')
     setPreparedAudio({})
     setAudioMessage('')
-    void Promise.all((['en-GB', 'en-US'] as const).map(async (locale) => [locale, await loadAudio(word.id, locale, word.term)] as const))
-      .then((entries) => {
-        if (!active) return
-        setPreparedAudio(Object.fromEntries(entries))
-      })
-      .catch(() => { /* The play action retries and reports any failure. */ })
+    for (const locale of ['en-GB', 'en-US'] as const) {
+      void (async () => {
+        const result = await loadAudio(word.id, locale, word.term)
+        if (active) setPreparedAudio(previous => ({ ...previous, [locale]: result }))
+      })().catch(() => { /* The play action retries and reports this accent's failure. */ })
+    }
     return () => {
       active = false
       generation.current += 1

@@ -24,6 +24,34 @@ function api(overrides: Partial<WordPlanetApi> = {}): WordPlanetApi {
 }
 
 describe('BubbleMatchGame', () => {
+  it('preserves same-frame misses, counts first answers separately, and completes each round only once', async () => {
+    const user = userEvent.setup()
+    const onAttempt = vi.fn(), onComplete = vi.fn(), onReplay = vi.fn(), onNextChallenge = vi.fn()
+    const props = { words: gameWords, rounds: 2, seed: 3, onAttempt, onComplete, onReplay, onNextChallenge, onReturnToLearning: vi.fn(), onBackToHub: vi.fn() }
+    const view = render(<BubbleMatchGame {...props} />)
+    const target = screen.getByTestId('bubble-target').dataset.wordId!
+    const wrong = screen.getAllByRole('button').find(button => button.dataset.wordId && button.dataset.wordId !== target)!
+    const correct = screen.getAllByRole('button').find(button => button.dataset.wordId === target)!
+    act(() => { wrong.click(); correct.click(); correct.click() })
+    expect(onAttempt).toHaveBeenCalledTimes(2)
+    expect(onComplete).not.toHaveBeenCalled()
+    const next = screen.getByRole('button', { name: '下一题' })
+    act(() => { next.click(); next.click() })
+    expect(screen.getByText('第 2 / 2 轮')).toBeVisible()
+    const secondTarget = screen.getByTestId('bubble-target').dataset.wordId!
+    const final = screen.getAllByRole('button').find(button => button.dataset.wordId === secondTarget)!
+    act(() => { final.click(); final.click() })
+    expect(onAttempt).toHaveBeenCalledTimes(3)
+    expect(screen.getByText('完成 2 / 2 轮')).toBeVisible()
+    expect(screen.getByText('首次答对 1 / 2 轮')).toBeVisible()
+    expect(onComplete).toHaveBeenCalledExactlyOnceWith({ completedRounds: 2, totalRounds: 2, firstTryCorrect: 1 })
+    view.rerender(<BubbleMatchGame {...props} />)
+    expect(onComplete).toHaveBeenCalledOnce()
+    await user.click(screen.getByRole('button', { name: '再玩一次' }))
+    await user.click(screen.getByRole('button', { name: '下一关' }))
+    expect(onReplay).toHaveBeenCalledOnce(); expect(onNextChallenge).toHaveBeenCalledOnce()
+  })
+
   it('records each visible answer and completes a real sourced round', async () => {
     const user = userEvent.setup()
     const onAttempt = vi.fn()
@@ -44,7 +72,7 @@ describe('GameHub', () => {
     { name: '泡泡找单词', result: '本局完成', target: 'bubble-target' },
     { name: '拼写小火车', result: '小火车到站啦', target: 'train-target' },
     { name: '记忆翻翻乐', result: '翻翻乐完成', target: null },
-  ])('returns from a completed $name game to the hub and starts a fresh game', async ({ name, result, target }) => {
+  ])('returns from a completed $name game to the hub and starts its next unfinished challenge', async ({ name, result, target }) => {
     const user = userEvent.setup()
     render(<GameHub api={api()} progressRecorder={recorder} onReturnToLearning={vi.fn()} />)
     await screen.findByText('4 个单词 · 随机出题')
@@ -62,8 +90,9 @@ describe('GameHub', () => {
         }
       }
     } else {
-      for (const word of sourceWords) {
-        const cards = screen.getAllByRole('button', { name: /未翻开的记忆卡片/ }).filter(card => card.dataset.wordId === word.id)
+      const wordIds = [...new Set(screen.getAllByRole('button', { name: /未翻开的记忆卡片/ }).map(card => card.dataset.wordId))]
+      for (const wordId of wordIds) {
+        const cards = screen.getAllByRole('button', { name: /未翻开的记忆卡片/ }).filter(card => card.dataset.wordId === wordId)
         for (const card of cards) await user.click(card)
       }
     }
@@ -74,9 +103,12 @@ describe('GameHub', () => {
     await user.click(screen.getByRole('button', { name: `开始${name}` }))
     expect(screen.getByRole('heading', { name })).toHaveFocus()
     expect(screen.queryByRole('heading', { name: result })).not.toBeInTheDocument()
-    if (name === '泡泡找单词') expect(screen.getByText('第 1 / 2 轮')).toBeVisible()
-    if (name === '拼写小火车') expect(screen.getByLabelText('输入英文单词')).toHaveValue('')
-    if (name === '记忆翻翻乐') expect(screen.getByText('已配对 0 / 4 组')).toBeVisible()
+    if (name === '泡泡找单词') expect(screen.getByText('第 1 / 4 轮')).toBeVisible()
+    if (name === '拼写小火车') {
+      expect(screen.getByLabelText('输入英文单词')).toHaveValue('')
+      expect(screen.getByText('第 1 / 3 轮')).toBeVisible()
+    }
+    if (name === '记忆翻翻乐') expect(screen.getByText('已配对 0 / 3 组')).toBeVisible()
   })
 
   it('keeps routine saves quiet while the child receives answer feedback', async () => {

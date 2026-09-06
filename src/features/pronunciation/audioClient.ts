@@ -1,4 +1,5 @@
 import type { Accent } from '../../pronunciation/voiceCatalog'
+import { clearPreparedAudio, prepareAudioUrl } from './playback'
 
 export type WordAudioResult =
   | { status: 'audio'; source: 'cloud' | 'cache' | 'local'; url: string }
@@ -57,7 +58,11 @@ export async function loadWordAudio(wordId: string, locale: Accent, termOrDepend
       const hasId3 = header[0] === 0x49 && header[1] === 0x44 && header[2] === 0x33
       const hasFrame = header[0] === 0xff && (header[1] & 0xe0) === 0xe0
       if (!hasId3 && !hasFrame) throw new Error('invalid-mp3')
+      prepareAudioUrl(url, data)
     })
+    // An older native player may have been evicted; rewarm its browser-cached URL.
+    // The request cache keeps no ArrayBuffers after preparation.
+    prepareAudioUrl(url)
     return { status: 'audio', source: 'local', url }
   } catch {
     return { status: 'device-fallback', locale, reason: 'bundled-audio-unavailable' }
@@ -68,4 +73,4 @@ export async function assessWordPronunciation(_wordId: string, _locale: Accent, 
   return { status: 'assessmentUnavailable', reason: 'static-site-local-replay-only', localReplayAvailable: true }
 }
 
-export function clearWordAudioRequests() { requests = new WeakMap() }
+export function clearWordAudioRequests() { requests = new WeakMap(); clearPreparedAudio() }

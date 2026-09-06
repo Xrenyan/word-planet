@@ -127,7 +127,7 @@ export function TodayDashboard({ api, onStartLearning, onOpenCurriculum, onOpenG
             <p className="today-dashboard__meaning">{state.word.meaningZh}</p>
           </div>
           <figure className="today-dashboard__art">
-            <WordArtwork image={state.word.image} term={state.word.term} meaningZh={state.word.meaningZh} wordId={state.word.id} />
+            <WordArtwork priority image={state.word.image} term={state.word.term} meaningZh={state.word.meaningZh} wordId={state.word.id} />
           </figure>
           <div className="today-dashboard__controls">
             <PronunciationControls word={state.word} showRecorder={false} />

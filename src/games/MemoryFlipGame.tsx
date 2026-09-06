@@ -1,13 +1,14 @@
 import { ArrowLeft, ArrowRight, CardsThree, CheckCircle } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import type { GameAttempt, GameWord } from './engine'
+import type { GameAttempt, GameCompletionCallbacks, GameWord } from './engine'
 import { createMemoryDeck, type MemoryCard } from './memoryEngine'
 import { WordArtwork } from '../learning/WordArtwork'
 
-type MemoryFlipGameProps = {
+type MemoryFlipGameProps = GameCompletionCallbacks & {
   words: readonly GameWord[]
   seed?: number
+  groups?: 2 | 3 | 4
   onReturnToLearning: () => void
   onBackToHub: () => void
   onAttempt?: (attempt: GameAttempt) => void
@@ -19,22 +20,33 @@ function revealedLabel(card: MemoryCard, matched: boolean) {
   return `${prefix}${card.kind === 'term' ? '英文' : '中文'}：${card.text}`
 }
 
-export function MemoryFlipGame({ words, seed = 20260820, onReturnToLearning, onBackToHub, onAttempt }: MemoryFlipGameProps) {
-  const deck = createMemoryDeck(words, seed)
-  return <MemoryFlipSession key={JSON.stringify(deck)} deck={deck} onReturnToLearning={onReturnToLearning} onBackToHub={onBackToHub} onAttempt={onAttempt} />
+export function MemoryFlipGame({ words, seed = 20260820, groups = 4, ...props }: MemoryFlipGameProps) {
+  const deck = createMemoryDeck(words, seed, groups)
+  return <MemoryFlipSession key={JSON.stringify(deck)} deck={deck} {...props} />
 }
 
-function MemoryFlipSession({ deck, onReturnToLearning, onBackToHub, onAttempt }: { deck: readonly MemoryCard[]; onReturnToLearning: () => void; onBackToHub: () => void; onAttempt?: (attempt: GameAttempt) => void }) {
+function MemoryFlipSession({ deck, onReturnToLearning, onBackToHub, onAttempt, onComplete, onReplay, onNextChallenge }: Omit<MemoryFlipGameProps, 'words' | 'seed' | 'groups'> & { deck: readonly MemoryCard[] }) {
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([])
   const [matchedWordIds, setMatchedWordIds] = useState<readonly string[]>([])
   const [mismatch, setMismatch] = useState(false)
   const [message, setMessage] = useState('')
   const [finished, setFinished] = useState(false)
+  const selectionRef = useRef({ selected: [] as readonly string[], matched: [] as readonly string[], mismatch: false, finished: false })
+  const mismatchedWordIdsRef = useRef(new Set<string>())
+  const completionReportedRef = useRef(false)
   const [focusRequest, setFocusRequest] = useState<{ target: 'heading' | 'continue' | 'card'; cardId?: string; sequence: number }>({ target: 'heading', sequence: 0 })
   const titleRef = useRef<HTMLHeadingElement>(null)
   const continueRef = useRef<HTMLButtonElement>(null)
   const cardRefs = useRef(new Map<string, HTMLButtonElement>())
   const wordCount = useMemo(() => new Set(deck.map((card) => card.wordId)).size, [deck])
+
+  useEffect(() => {
+    if (!finished || completionReportedRef.current || !onComplete) return
+    completionReportedRef.current = true
+    // These are memory groups completed without a prior wrong triple, not vocabulary misses.
+    const firstTryCorrect = matchedWordIds.filter(wordId => !mismatchedWordIdsRef.current.has(wordId)).length
+    onComplete({ completedRounds: matchedWordIds.length, totalRounds: wordCount, firstTryCorrect })
+  }, [finished, matchedWordIds, wordCount, onComplete])
 
   useEffect(() => {
     if (finished || focusRequest.target === 'heading') {
@@ -57,43 +69,54 @@ function MemoryFlipSession({ deck, onReturnToLearning, onBackToHub, onAttempt }:
   }
 
   function select(card: MemoryCard) {
-    if (finished || mismatch || matchedWordIds.includes(card.wordId) || selectedIds.length >= 3) return
-    if (selectedIds.includes(card.id)) {
-      setSelectedIds(Object.freeze(selectedIds.filter((id) => id !== card.id)))
+    const selection = selectionRef.current
+    if (selection.finished || selection.mismatch || selection.matched.includes(card.wordId) || selection.selected.length >= 3) return
+    if (selection.selected.includes(card.id)) {
+      selection.selected = Object.freeze(selection.selected.filter((id) => id !== card.id))
+      setSelectedIds(selection.selected)
       setMessage('这张卡已盖回去，可以重新选择。')
       requestFocus('card', card.id)
       return
     }
-    const nextIds = Object.freeze([...selectedIds, card.id])
+    const nextIds = Object.freeze([...selection.selected, card.id])
+    selection.selected = nextIds
     setSelectedIds(nextIds)
     if (nextIds.length < 3) return
     const selected = nextIds.map((id) => deck.find((candidate) => candidate.id === id)!)
     const isTriple = new Set(selected.map((candidate) => candidate.wordId)).size === 1 && new Set(selected.map((candidate) => candidate.kind)).size === 3
     if (!isTriple) {
-      for (const wordId of new Set(selected.map((candidate) => candidate.wordId))) onAttempt?.({ wordId, outcome: 'missed' })
+      for (const selectedCard of selected) mismatchedWordIdsRef.current.add(selectedCard.wordId)
+      selection.mismatch = true
       setMismatch(true)
       setMessage('还不是同一组，记住它们的位置，再继续翻牌吧！')
       requestFocus('continue')
       return
     }
     const wordId = selected[0].wordId
-    onAttempt?.({ wordId, outcome: 'correct' })
-    const matched = Object.freeze([...matchedWordIds, wordId])
+    const matched = Object.freeze([...selection.matched, wordId])
+    selection.matched = matched
+    selection.selected = Object.freeze([])
     setMatchedWordIds(matched)
     setSelectedIds(Object.freeze([]))
     setMessage('配成一组啦！')
     if (matched.length === wordCount) {
+      selection.finished = true
       setFinished(true)
+      onAttempt?.({ wordId, outcome: 'correct' })
       return
     }
     const nextCard = deck.find((candidate) => !matched.includes(candidate.wordId))
     if (nextCard) requestFocus('card', nextCard.id)
+    onAttempt?.({ wordId, outcome: 'correct' })
   }
 
   function continueAfterMismatch() {
-    if (!mismatch) return
-    const firstClosedCardId = selectedIds[0]
-    setSelectedIds(Object.freeze([]))
+    const selection = selectionRef.current
+    if (!selection.mismatch) return
+    const firstClosedCardId = selection.selected[0]
+    selection.selected = Object.freeze([])
+    selection.mismatch = false
+    setSelectedIds(selection.selected)
     setMismatch(false)
     setMessage('继续找同一组的图片、英文和中文吧！')
     if (firstClosedCardId) requestFocus('card', firstClosedCardId)
@@ -107,6 +130,8 @@ function MemoryFlipSession({ deck, onReturnToLearning, onBackToHub, onAttempt }:
         <h2 ref={titleRef} id="memory-game-title" data-route-heading tabIndex={-1}>翻翻乐完成</h2>
         <p className="memory-game__result">完成 {matchedWordIds.length} / {wordCount} 组</p>
         <p>每组都找齐啦！再选个游戏，或回去学单词吧。</p>
+        {onReplay && <button className="game-back" type="button" onClick={onReplay}>再玩一次</button>}
+        {onNextChallenge && <button className="memory-game__return" type="button" onClick={onNextChallenge}>下一关 <ArrowRight aria-hidden="true" weight="bold" /></button>}
         <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
         <button className="memory-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
       </section>

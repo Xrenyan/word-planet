@@ -2,9 +2,9 @@ import { ArrowLeft, ArrowRight, Backspace, CheckCircle, Train } from '@phosphor-
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import { WordArtwork } from '../learning/WordArtwork'
-import { createGameRounds, type GameAttempt, type GameRound, type GameWord } from './engine'
+import { createGameRounds, type GameAttempt, type GameCompletionCallbacks, type GameRound, type GameWord } from './engine'
 
-type SpellingTrainGameProps = {
+type SpellingTrainGameProps = GameCompletionCallbacks & {
   words: readonly GameWord[]
   rounds?: number
   seed?: number
@@ -37,7 +37,7 @@ function normalizeSpelling(value: string) {
   return value.trim().toLocaleLowerCase('en-US')
 }
 
-export function SpellingTrainGame({ words, rounds = 2, seed = 20260819, onReturnToLearning, onBackToHub, onAttempt }: SpellingTrainGameProps) {
+export function SpellingTrainGame({ words, rounds = 2, seed = 20260819, ...props }: SpellingTrainGameProps) {
   const gameRounds = createGameRounds(words, seed, rounds)
   return (
     <SpellingTrainSession
@@ -45,24 +45,33 @@ export function SpellingTrainGame({ words, rounds = 2, seed = 20260819, onReturn
       gameRounds={gameRounds}
       rounds={rounds}
       seed={seed}
-      onReturnToLearning={onReturnToLearning}
-      onBackToHub={onBackToHub}
-      onAttempt={onAttempt}
+      {...props}
     />
   )
 }
 
-function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onAttempt }: SpellingTrainSessionProps) {
+function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onAttempt, onComplete, onReplay, onNextChallenge }: SpellingTrainSessionProps) {
   const [roundIndex, setRoundIndex] = useState(0)
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState<'empty' | 'wrong' | 'correct' | null>(null)
   const [finished, setFinished] = useState(false)
+  const [firstTryCorrect, setFirstTryCorrect] = useState(0)
+  const activeRoundIndexRef = useRef(0)
+  const attemptedRoundIdsRef = useRef(new Set<string>())
+  const solvedRoundIdsRef = useRef(new Set<string>())
+  const completionReportedRef = useRef(false)
   const [focusRequest, setFocusRequest] = useState<{ target: 'heading' | 'input' | 'next'; sequence: number }>({ target: 'heading', sequence: 0 })
   const inputRef = useRef<HTMLInputElement>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const current = gameRounds[roundIndex]
   const letters = useMemo(() => shuffledLetters(current.target.term, current.seed), [current])
+
+  useEffect(() => {
+    if (!finished || completionReportedRef.current || !onComplete) return
+    completionReportedRef.current = true
+    onComplete({ completedRounds: solvedRoundIdsRef.current.size, totalRounds: gameRounds.length, firstTryCorrect })
+  }, [finished, firstTryCorrect, gameRounds.length, onComplete])
 
   useEffect(() => {
     if (finished || focusRequest.target === 'heading') {
@@ -83,25 +92,31 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    if (feedback === 'correct' || finished) return
+    if (activeRoundIndexRef.current !== roundIndex || solvedRoundIdsRef.current.has(current.roundId) || finished) return
     if (answer.length === 0 || answer.trim().length === 0) {
       setFeedback('empty')
       requestFocus('input')
       return
     }
     const correct = normalizeSpelling(answer) === normalizeSpelling(current.target.term)
-    onAttempt?.({ wordId: current.target.id, outcome: correct ? 'correct' : 'missed' })
+    if (correct) {
+      solvedRoundIdsRef.current.add(current.roundId)
+      if (!attemptedRoundIdsRef.current.has(current.roundId)) setFirstTryCorrect(count => count + 1)
+    }
+    attemptedRoundIdsRef.current.add(current.roundId)
     setFeedback(correct ? 'correct' : 'wrong')
     requestFocus(correct ? 'next' : 'input')
+    onAttempt?.({ wordId: current.target.id, outcome: correct ? 'correct' : 'missed' })
   }
 
   function nextRound() {
-    if (feedback !== 'correct') return
+    if (activeRoundIndexRef.current !== roundIndex || !solvedRoundIdsRef.current.has(current.roundId)) return
+    activeRoundIndexRef.current = roundIndex + 1
     if (roundIndex + 1 >= gameRounds.length) {
       setFinished(true)
       return
     }
-    setRoundIndex((index) => index + 1)
+    setRoundIndex(roundIndex + 1)
     setAnswer('')
     setFeedback(null)
     requestFocus('input')
@@ -113,8 +128,11 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
         <div className="train-game__complete-badge"><CheckCircle aria-hidden="true" weight="fill" /></div>
         <p className="demo-disclaimer">游戏星岛</p>
         <h2 ref={titleRef} id="train-game-title" data-route-heading tabIndex={-1}>小火车到站啦</h2>
-        <p className="train-game__result">拼对 {gameRounds.length} / {gameRounds.length} 轮</p>
+        <p className="train-game__result">完成 {solvedRoundIdsRef.current.size} / {gameRounds.length} 轮</p>
+        <p>首次拼对 {firstTryCorrect} / {gameRounds.length} 轮</p>
         <p>单词都上车啦！再选个游戏，或回去学单词吧。</p>
+        {onReplay && <button className="game-back" type="button" onClick={onReplay}>再玩一次</button>}
+        {onNextChallenge && <button className="train-game__return" type="button" onClick={onNextChallenge}>下一关 <ArrowRight aria-hidden="true" weight="bold" /></button>}
         <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
         <button className="train-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
       </section>
@@ -135,7 +153,7 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
 
       <div className="train-game__stage">
         <figure className="train-game__target" data-testid="train-target" data-word-id={current.target.id}>
-          <WordArtwork revealTerm={false} wordId={current.target.id} meaningZh={current.target.meaningZh} image={current.target.image} term={current.target.term} />
+          <WordArtwork priority revealTerm={false} wordId={current.target.id} meaningZh={current.target.meaningZh} image={current.target.image} term={current.target.term} />
           <figcaption>{current.target.meaningZh}</figcaption>
         </figure>
         <div className="train-game__practice">
@@ -147,7 +165,7 @@ function SpellingTrainSession({ gameRounds, onReturnToLearning, onBackToHub, onA
               </span>
             ))}
           </div>
-          <form className="train-game__form" onSubmit={submit}>
+          <form key={current.roundId} className="train-game__form" onSubmit={submit}>
             <label htmlFor="train-answer">输入英文单词</label>
             <input
               ref={inputRef}

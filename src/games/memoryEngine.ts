@@ -37,8 +37,9 @@ function shuffle<T>(values: readonly T[], seed: number): readonly T[] {
 }
 
 /** Builds a canonical, deterministic three-card set through the Task 9 truth boundary. */
-export function createMemoryDeck(words: readonly GameWord[] | unknown, seed: number): readonly MemoryCard[] {
-  const validated = shuffle(createGameRound(words, seed).sourceWords, seed).slice(0, 4)
+export function createMemoryDeck(words: readonly GameWord[] | unknown, seed: number, groups: 2 | 3 | 4 = 4): readonly MemoryCard[] {
+  if (![2, 3, 4].includes(groups)) throw new Error('memory group count must be 2, 3 or 4')
+  const validated = shuffle(createGameRound(words, seed).sourceWords, seed).slice(0, groups)
   const cards = validated.flatMap((word): MemoryCard[] =>
     CARD_KINDS.map((kind) => {
       const base = { id: JSON.stringify([word.id, kind]), wordId: word.id }

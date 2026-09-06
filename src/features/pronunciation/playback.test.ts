@@ -15,6 +15,20 @@ function browserAudio() {
 }
 
 describe('playAudioUrl', () => {
+  it('ignores an old ended event after the same native player has restarted', async () => {
+    const audio = { ...browserAudio(), ended: false }
+    const first = playAudioUrl('repeat.mp3', { createAudio: () => audio }).catch(error => error.name)
+    let completed = false
+    const replay = playAudioUrl('repeat.mp3', { createAudio: () => audio }).then(() => { completed = true })
+    await expect(first).resolves.toBe('AbortError')
+    audio.end()
+    await Promise.resolve()
+    expect(completed).toBe(false)
+    audio.ended = true
+    audio.end()
+    await replay
+    expect(completed).toBe(true)
+  })
   it('pauses and settles the old clip immediately when another pronunciation starts', async () => {
     const previous = browserAudio()
     const next = browserAudio()

@@ -40,6 +40,23 @@ const readyAudio = async (_wordId: string, locale: 'en-GB' | 'en-US'): Promise<W
 afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 describe('PronunciationControls', () => {
+  it.each(['pending', 'failed'] as const)('uses a prepared UK voice synchronously while US preparation is %s', async (usState) => {
+    let finishUk!: (result: WordAudioResult) => void
+    let failUs!: (error: Error) => void
+    const uk = new Promise<WordAudioResult>(resolve => { finishUk = resolve })
+    const us = new Promise<WordAudioResult>((_resolve, reject) => { failUs = reject })
+    const loadAudio = vi.fn((_id: string, locale: 'en-GB' | 'en-US') => locale === 'en-GB' ? uk : us)
+    const playUrl = vi.fn(async () => undefined)
+    render(<PronunciationControls word={word} loadAudio={loadAudio} playUrl={playUrl} />)
+    await act(async () => {
+      finishUk({ status: 'audio', source: 'local', url: 'uk-ready.mp3' })
+      if (usState === 'failed') failUs(new Error('US network unavailable'))
+    })
+    fireEvent.click(screen.getByRole('button', { name: '播放英式发音' }))
+    expect(playUrl).toHaveBeenCalledWith('uk-ready.mp3', expect.objectContaining({ signal: expect.any(AbortSignal) }))
+    expect(loadAudio).toHaveBeenCalledTimes(2)
+    expect(await screen.findByText('英式发音播放完成')).toBeVisible()
+  })
   it('passes the selected slow rate to real audio playback', async () => {
     const playUrl = vi.fn(async () => undefined)
     render(<PronunciationControls word={word} loadAudio={readyAudio} playUrl={playUrl} />)

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, ArrowRight, BookOpen, Headphones, Keyboard, Microphone, SquaresFour } from '@phosphor-icons/react'
 import type { LearningEvent, VocabularyWordContract } from '../../../shared/contracts'
 import { PronunciationControls } from '../../features/pronunciation/PronunciationControls'
-import { WordArtwork } from '../../learning/WordArtwork'
+import { artworkSource, WordArtwork } from '../../learning/WordArtwork'
 import { Pressable } from '../../ui/Pressable'
 import type { WordPlanetApi } from '../api/client'
 import { readBookmark, saveBookmark } from '../../learning/bookmark'
@@ -27,26 +27,35 @@ function eventId(wordId: string) {
 
 type PracticePageProps = {
   word?: VocabularyWordContract
+  reviewWords?: readonly VocabularyWordContract[]
   progressRecorder?: ProgressRecorder
   api?: WordPlanetApi
-  onBack?: () => void
+  onBack?: (result?: PracticeExit) => void
+  onSaveStateChange?: (result: PracticeExit) => void
 }
 
-export function PracticePage({ word, progressRecorder, api, onBack }: PracticePageProps = {}) {
-  const [selected, setSelected] = useState<(typeof modes)[number]['id']>('learn')
+export type PracticeExit = { unconfirmedWordIds: readonly string[]; confirmedWordIds: readonly string[] }
+
+export function PracticePage({ word, reviewWords, progressRecorder, api, onBack, onSaveStateChange }: PracticePageProps = {}) {
+  const isReview = reviewWords !== undefined
+  const backLabel = isReview ? '返回错词本' : '返回词表'
+  const [selected, setSelected] = useState<(typeof modes)[number]['id']>(isReview ? 'spell' : 'learn')
   const [answer, setAnswer] = useState('')
   const [feedback, setFeedback] = useState('')
   const [saveWarning, setSaveWarning] = useState('')
   const [retry, setRetry] = useState(0)
   const mounted = useRef(false)
-  const [sessionWords, setSessionWords] = useState<readonly VocabularyWordContract[]>(() => word ? [word] : [])
+  const [sessionWords, setSessionWords] = useState<readonly VocabularyWordContract[]>(() => reviewWords ?? (word ? [word] : []))
   const [currentIndex, setCurrentIndex] = useState(0)
   const [bookWords, setBookWords] = useState<readonly VocabularyWordContract[]>([])
   const [nextGroupIndex, setNextGroupIndex] = useState(0)
   const [finished, setFinished] = useState(false)
   const [groupAttempts, setGroupAttempts] = useState<Record<string, 'correct' | 'missed'>>({})
   const [missedIds, setMissedIds] = useState<string[]>([])
-  const [loadStatus, setLoadStatus] = useState<'idle' | 'loading' | 'error' | 'empty'>(api && !word ? 'loading' : 'idle')
+  const [loadStatus, setLoadStatus] = useState<'idle' | 'loading' | 'error' | 'empty'>(api && !word && !isReview ? 'loading' : 'idle')
+  const pendingSaveCounts = useRef(new Map<string, number>())
+  const failedSaveWordIds = useRef(new Set<string>())
+  const confirmedSaveWordIds = useRef(new Set<string>())
   const inputRef = useRef<HTMLInputElement>(null)
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const solvedRef = useRef(false)
@@ -128,7 +137,29 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
     if (mode === 'spell') requestAnimationFrame(() => inputRef.current?.focus())
   }
 
+  function saveState(): PracticeExit {
+    const unconfirmedIds = new Set([...failedSaveWordIds.current, ...pendingSaveCounts.current.keys()])
+    return { unconfirmedWordIds: [...unconfirmedIds], confirmedWordIds: [...confirmedSaveWordIds.current].filter(id => !unconfirmedIds.has(id)) }
+  }
+
+  function returnToPrevious() {
+    onBack?.(saveState())
+  }
+
   useEffect(() => {
+    if (reviewWords !== undefined) {
+      setSessionWords(reviewWords)
+      setBookWords([])
+      setNextGroupIndex(0)
+      setGroupAttempts({})
+      setMissedIds([])
+      setFinished(false)
+      setSelected('spell')
+      moveTo(0)
+      setCurrentIndex(0)
+      setLoadStatus('idle')
+      return
+    }
     if (!api) {
       setSessionWords(word ? [word] : [])
       setCurrentIndex(0)
@@ -168,13 +199,24 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
       controller.abort()
       clearAdvanceTimer()
     }
-  }, [api, word, retry])
+  }, [api, word, reviewWords, retry])
 
   function saveAttempt(outcome: 'correct' | 'missed', source: 'spelling' | 'recognition') {
     if (!progressRecorder || !activeWord) return
-    const warn = () => { if (mounted.current) setSaveWarning('这次练习没能保存。先别关闭页面，请家长到工具箱帮忙。') }
-    void progressRecorder.record({ id: eventId(activeWord.id), profileId: 'local-child', wordId: activeWord.id, outcome, source, occurredAt: Date.now() })
-      .then(status => { if (status === 'memory-only' || status === 'queued') warn() }).catch(warn)
+    const wordId = activeWord.id
+    pendingSaveCounts.current.set(wordId, (pendingSaveCounts.current.get(wordId) ?? 0) + 1)
+    onSaveStateChange?.(saveState())
+    const warn = () => { failedSaveWordIds.current.add(wordId); if (mounted.current) setSaveWarning('这次练习没能保存。先别关闭页面，请家长到工具箱帮忙。') }
+    void Promise.resolve().then(() => progressRecorder.record({ id: eventId(wordId), profileId: 'local-child', wordId, outcome, source, occurredAt: Date.now() }))
+      .then(status => {
+        if (status === 'memory-only' || status === 'queued') warn()
+        else confirmedSaveWordIds.current.add(wordId)
+      }).catch(warn).finally(() => {
+        const remaining = (pendingSaveCounts.current.get(wordId) ?? 1) - 1
+        if (remaining > 0) pendingSaveCounts.current.set(wordId, remaining)
+        else pendingSaveCounts.current.delete(wordId)
+        if (mounted.current) onSaveStateChange?.(saveState())
+      })
   }
 
   function submit(event: React.FormEvent) {
@@ -217,27 +259,29 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
     : []
   const offset = activeWord ? [...activeWord.id].reduce((sum, char) => sum + char.charCodeAt(0), 0) % Math.max(1, recognitionCandidates.length) : 0
   const recognitionChoices = [...recognitionCandidates.slice(offset), ...recognitionCandidates.slice(0, offset)]
+  const upcomingArtwork = [...new Set(sessionWords.slice(currentIndex + 1, currentIndex + 3).map(next => artworkSource(next.image.src)).filter((src): src is string => Boolean(src)))]
 
   if (finished) return <section className="practice-completion" aria-labelledby="practice-complete-title">
     <BookOpen weight="duotone" aria-hidden="true" />
     <p className="status-pill">小步前进，每次一组</p>
-    <h2 id="practice-complete-title" tabIndex={-1}>这一组完成啦！</h2>
-    <p>本组 {sessionWords.length} 个单词{Object.keys(groupAttempts).length === 0 && ' · 已认识，接着试试不看答案练一练吧'}</p>
+    <h2 id="practice-complete-title" tabIndex={-1}>{isReview ? '这组复习完成啦！' : '这一组完成啦！'}</h2>
+    <p>本组 {sessionWords.length} 个单词{Object.keys(groupAttempts).length === 0 && ' · 已浏览，接着试试不看答案练一练吧'}</p>
     {saveWarning && <p className="practice-save-warning" role="alert">{saveWarning}</p>}
     {Object.keys(groupAttempts).length > 0 && <p>首次答对 {Object.values(groupAttempts).filter(result => result === 'correct').length} / {Object.keys(groupAttempts).length}</p>}
     <ul className="practice-completion__words">{sessionWords.map(candidate => <li key={candidate.id}><strong lang="en">{candidate.term}</strong><span>{candidate.meaningZh}</span><small>{missedIds.includes(candidate.id) ? '再巩固' : groupAttempts[candidate.id] ? '首次答对' : '已浏览'}</small></li>)}</ul>
     <div className="practice-completion__actions">
       {missedIds.length > 0 && <Pressable className="dashboard-primary-button" onClick={retryMissed}>再练错词（{missedIds.length}）</Pressable>}
-      {nextGroupIndex < bookWords.length && <Pressable className={missedIds.length ? '' : 'dashboard-primary-button'} onClick={() => startGroup(bookWords, nextGroupIndex)}>继续下一组<ArrowRight aria-hidden="true" /></Pressable>}
+      {!isReview && nextGroupIndex < bookWords.length && <Pressable className={missedIds.length ? '' : 'dashboard-primary-button'} onClick={() => startGroup(bookWords, nextGroupIndex)}>继续下一组<ArrowRight aria-hidden="true" /></Pressable>}
       <Pressable onClick={() => { setGroupAttempts({}); setMissedIds([]); setFinished(false); moveTo(0) }}>再学这一组</Pressable>
-      {onBack && <Pressable onClick={onBack}>返回词表</Pressable>}
+      {onBack && <Pressable onClick={returnToPrevious}>{backLabel}</Pressable>}
     </div>
   </section>
 
   if (activeWord) return (
     <section className="route-empty-state verified-practice" aria-labelledby="practice-title" data-practice-mode={resolvedMode}>
       <div className="verified-practice__topbar">
-        {onBack && <Pressable className="verified-practice__back" onClick={onBack}><ArrowLeft aria-hidden="true" />返回词表</Pressable>}
+        {upcomingArtwork.map(src => <link key={src} rel="preload" as="image" href={src} fetchPriority="low" />)}
+        {onBack && <Pressable className="verified-practice__back" onClick={returnToPrevious}><ArrowLeft aria-hidden="true" />{backLabel}</Pressable>}
         <p className="status-pill">{unitLabel(activeWord)}</p>
         <p className="verified-practice__progress" aria-live="polite">第 {currentIndex + 1} / {sessionWords.length} 词</p>
         <progress className="verified-practice__meter" value={currentIndex + 1} max={sessionWords.length} aria-label="本组学习进度" />
@@ -253,7 +297,7 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
       </div>
       <div className="verified-practice__content">
         {resolvedMode !== 'spell' && <figure>
-          {resolvedMode === 'listen' ? <div className="listening-orbit" aria-label="请听声音作答"><Headphones weight="duotone" /><strong>小耳朵，准备好了吗？</strong><p>点发音，听完再选择</p></div> : <WordArtwork image={activeWord.image} term={activeWord.term} meaningZh={activeWord.meaningZh} wordId={activeWord.id} />}
+          {resolvedMode === 'listen' ? <div className="listening-orbit" aria-label="请听声音作答"><Headphones weight="duotone" /><strong>小耳朵，准备好了吗？</strong><p>点发音，听完再选择</p></div> : <WordArtwork priority image={activeWord.image} term={activeWord.term} meaningZh={activeWord.meaningZh} wordId={activeWord.id} />}
         </figure>}
         <div className="verified-practice__task">
           {resolvedMode === 'spell' && <section className="spelling-prompt" aria-label="中文提示"><span>这个单词怎么写？</span><strong>{activeWord.meaningZh}</strong></section>}
@@ -295,7 +339,7 @@ export function PracticePage({ word, progressRecorder, api, onBack }: PracticePa
   )
 
   if (loadStatus === 'loading') return <section className="route-empty-state practice-landing" aria-labelledby="practice-title"><h2 id="practice-title" data-route-heading tabIndex={-1}>练习</h2><p role="status">正在准备第一组练习题……</p></section>
-  if (loadStatus === 'error' || loadStatus === 'empty') return <section className="route-empty-state practice-landing" aria-labelledby="practice-title"><h2 id="practice-title" data-route-heading tabIndex={-1}>练习</h2><p role="alert">{loadStatus === 'error' ? '单词还没加载好，点一下再试试。' : '这本课本还没有单词，先选另一本吧。'}</p>{loadStatus === 'error' && <Pressable onClick={() => setRetry(value => value + 1)}>再试一次</Pressable>}{onBack && <Pressable onClick={onBack}>返回词表</Pressable>}</section>
+  if (loadStatus === 'error' || loadStatus === 'empty') return <section className="route-empty-state practice-landing" aria-labelledby="practice-title"><h2 id="practice-title" data-route-heading tabIndex={-1}>练习</h2><p role="alert">{loadStatus === 'error' ? '单词还没加载好，点一下再试试。' : '这本课本还没有单词，先选另一本吧。'}</p>{loadStatus === 'error' && <Pressable onClick={() => setRetry(value => value + 1)}>再试一次</Pressable>}{onBack && <Pressable onClick={returnToPrevious}>{backLabel}</Pressable>}</section>
 
   return (
     <section className="route-empty-state practice-landing" aria-labelledby="practice-title">

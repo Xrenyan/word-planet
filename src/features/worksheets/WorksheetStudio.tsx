@@ -1,9 +1,9 @@
 import { FilePdf, Printer } from '@phosphor-icons/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { BookSummary, Worksheet } from '../../../shared/contracts'
 import type { WordPlanetApi } from '../../app/api/client'
 import { Pressable } from '../../ui/Pressable'
-import { WordArtwork } from '../../learning/WordArtwork'
+import { artworkSource } from '../../learning/WordArtwork'
 import { generateWorksheet, type WorksheetRequest } from '../../worksheets/worksheet'
 import { unitLabel } from '../../curriculum/labels'
 import { readBookmark } from '../../learning/bookmark'
@@ -19,16 +19,23 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
   const [books, setBooks] = useState<readonly BookSummary[]>([])
   const [bookId, setBookId] = useState('')
   const [unit, setUnit] = useState(1)
-  const [count, setCount] = useState(10)
+  const [count, setCount] = useState(12)
   const [status, setStatus] = useState<'loading' | 'loading-error' | 'ready' | 'generating' | 'error'>('loading')
   const [unitStatus, setUnitStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [unitOptions, setUnitOptions] = useState<readonly { unit: number; count: number; label?: string }[]>([{ unit: 1, count: 0 }])
   const [worksheet, setWorksheet] = useState<Worksheet | null>(null)
+  const [questionsPerPage, setQuestionsPerPage] = useState<8 | 12>(12)
+  const [writingGuide, setWritingGuide] = useState<'four-line' | 'ruled'>('four-line')
+  const [includeImages, setIncludeImages] = useState(false)
+  const [failedImages, setFailedImages] = useState<ReadonlySet<string>>(() => new Set())
+  const [showAnswers, setShowAnswers] = useState(false)
+  const answerPreviewId = useId()
   const generation = useRef(0)
   const [direction, setDirection] = useState<'zh-en' | 'en-zh'>('zh-en')
   useEffect(() => {
     generation.current += 1
     setWorksheet(null)
+    setShowAnswers(false)
     setStatus(current => current === 'generating' ? 'ready' : current)
   }, [bookId, unit, count, direction])
   useEffect(() => {
@@ -81,8 +88,9 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
 
   const selectedBook = useMemo(() => books.find((book) => book.id === bookId), [bookId, books])
   const selectedUnitCount = unitOptions.find((option) => option.unit === unit)?.count ?? 0
-  const questionPages = useMemo(() => worksheet ? chunk(worksheet.questions, 12) : [], [worksheet])
+  const questionPages = useMemo(() => worksheet ? chunk(worksheet.questions, questionsPerPage) : [], [worksheet, questionsPerPage])
   const answerPages = useMemo(() => worksheet ? chunk(worksheet.answers, 30) : [], [worksheet])
+  const showFourLines = direction === 'zh-en' && writingGuide === 'four-line'
 
   async function generate() {
     if (!bookId || unitStatus !== 'ready' || !selectedUnitCount || status === 'generating') return
@@ -93,6 +101,7 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
       const result = await (fetchWorksheet ? fetchWorksheet(request) : generateWorksheet(api, request))
       if (requestId !== generation.current) return
       setWorksheet(result)
+      setShowAnswers(false)
       setStatus('ready')
     } catch {
       if (requestId === generation.current) setStatus('error')
@@ -129,6 +138,9 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
           <label>单元<select value={unit} disabled={unitStatus === 'loading'} onChange={(event) => { const nextUnit = Number(event.target.value); setUnit(nextUnit); const nextCount = unitOptions.find((option) => option.unit === nextUnit)?.count ?? 0; if (nextCount > 0) setCount((current) => Math.min(current, nextCount)) }}>{unitOptions.map((option) => <option key={option.unit} value={option.unit}>{option.label ?? `Unit ${option.unit}`}{option.count > 0 ? ` · ${option.count} 词` : ''}</option>)}</select></label>
           <label>题型<select value={direction} onChange={event => setDirection(event.target.value as typeof direction)}><option value="zh-en">看中文写英文</option><option value="en-zh">看英文写中文</option></select></label>
           <label>题数<input type="number" min="1" max={Math.min(50, selectedUnitCount || 50)} value={count} onChange={(event) => setCount(Math.min(50, selectedUnitCount || 50, Math.max(1, Math.floor(Number(event.target.value)) || 1)))} /></label>
+          <label>每页题数<select value={questionsPerPage} onChange={event => setQuestionsPerPage(Number(event.target.value) as 8 | 12)}><option value="12">12 题 · 标准</option><option value="8">8 题 · 大留白</option></select></label>
+          <label>书写引导<select value={direction === 'en-zh' ? 'ruled' : writingGuide} disabled={direction === 'en-zh'} onChange={event => setWritingGuide(event.target.value as typeof writingGuide)}><option value="four-line">英文四线三格</option><option value="ruled">横线</option></select></label>
+          <label className="worksheet-studio__image-option"><input type="checkbox" checked={includeImages && direction === 'zh-en'} disabled={direction === 'en-zh'} onChange={event => setIncludeImages(event.target.checked)} />添加图片提示</label>
           <Pressable className="dashboard-primary-button" disabled={status === 'generating' || unitStatus !== 'ready' || !selectedUnitCount} onClick={() => void generate()}>{status === 'generating' ? '正在生成' : '生成单元默写纸'}</Pressable>
         </div>
       )}
@@ -141,18 +153,32 @@ export function WorksheetStudio({ api, fetchWorksheet }: { api: WordPlanetApi; f
             <strong>{selectedBook?.label} · {unitOptions.find(option => option.unit === worksheet.source.unit)?.label ?? `Unit ${worksheet.source.unit}`}</strong>
             <div><Pressable onClick={() => printWorksheet('questions')}><Printer aria-hidden="true" />仅打印题目</Pressable><Pressable className="worksheet-studio__print-all" onClick={() => printWorksheet('all')}><Printer aria-hidden="true" />打印题目与答案</Pressable></div>
           </div>
-          {questionPages.map((questions, pageIndex) => <section key={`questions-${pageIndex}`} className="worksheet-print-page worksheet-print-page--questions" data-last-page={pageIndex === questionPages.length - 1} aria-label={`默写题目页 ${pageIndex + 1}/${questionPages.length}`}>
+          <p className="worksheet-studio__preview-note">A4 纵向 · 每页 {questionsPerPage} 题 · 排版设置会即时更新，题目顺序保持不变。{includeImages && direction === 'zh-en' ? '仅显示已有的安全本地配图，其余题目不留图片占位。' : '无图省墨打印。'}</p>
+          {questionPages.map((questions, pageIndex) => <section key={`questions-${pageIndex}`} className="worksheet-print-page worksheet-print-page--questions" data-density={questionsPerPage === 8 ? 'roomy' : 'standard'} data-last-page={pageIndex === questionPages.length - 1} aria-label={`默写题目页 ${pageIndex + 1}/${questionPages.length}`}>
               <header className="worksheet-print-page__header"><div><p>WORD PLANET · 词星球</p><h3>{worksheet.title}</h3></div><strong>{selectedBook?.label}</strong></header>
               <div className="worksheet-print-page__student-fields"><span>班级：<i /></span><span>姓名：<i /></span><span>日期：<i /></span></div>
-              <p className="worksheet-print-page__instruction">{direction === 'zh-en' ? '看中文提示，在横线上写出正确的英文单词或短语。' : '看英文提示，在横线上写出对应的中文意思。'}</p>
-              <ol start={pageIndex * 12 + 1}>{questions.map((question) => <li key={question.wordId} data-illustrated={direction === 'zh-en' && question.image.src.startsWith('word-art/')}>{direction === 'zh-en' && question.image.src.startsWith('word-art/') && <WordArtwork revealTerm={false} image={question.image} term="" meaningZh={question.prompt} wordId={question.wordId} />}<div><span>{question.number}. {question.prompt}</span><b aria-label="书写横线">{question.blank}</b></div></li>)}</ol>
+              <p className="worksheet-print-page__instruction">{direction === 'zh-en' ? `看中文提示，在${showFourLines ? '四线三格' : '横线'}上写出正确的英文单词或短语。` : '看英文提示，在横线上写出对应的中文意思。'}</p>
+              <ol role="list" start={pageIndex * questionsPerPage + 1}>{questions.map((question) => {
+                const source = includeImages && direction === 'zh-en' ? artworkSource(question.image.src, false) : null
+                const illustration = source && !failedImages.has(source) ? source : null
+                return <li key={question.wordId} value={question.number} data-illustrated={Boolean(illustration)}>
+                  <div className="worksheet-print-page__question">
+                    <span className="worksheet-print-page__prompt">{question.number}. {question.prompt}</span>
+                    {illustration && <img className="worksheet-print-page__clue" src={illustration} alt={question.prompt} onError={() => setFailedImages(current => new Set([...current, illustration]))} />}
+                  </div>
+                  <span className={`worksheet-print-page__writing worksheet-print-page__writing--${showFourLines ? 'four-line' : 'ruled'}`} aria-label={showFourLines ? '英文四线三格' : '书写横线'} />
+                </li>
+              })}</ol>
               <footer>共 {worksheet.questions.length} 题 · 第 {pageIndex + 1}/{questionPages.length} 页</footer>
             </section>)}
-          {answerPages.map((answers, pageIndex) => <section key={`answers-${pageIndex}`} className="worksheet-print-page worksheet-print-page--answers" aria-label={`默写答案页 ${pageIndex + 1}/${answerPages.length}`}>
+          <div className="worksheet-studio__answer-toggle"><Pressable aria-expanded={showAnswers} aria-controls={answerPreviewId} onClick={() => setShowAnswers(current => !current)}>{showAnswers ? '收起答案' : '显示答案'}</Pressable><span>答案单独成页，选择“打印题目与答案”时始终包含。</span></div>
+          <div id={answerPreviewId} className="worksheet-studio__answers" hidden={!showAnswers}>
+          {answerPages.map((answers, pageIndex) => <section key={`answers-${pageIndex}`} className="worksheet-print-page worksheet-print-page--answers" data-last-page={pageIndex === answerPages.length - 1} aria-label={`默写答案页 ${pageIndex + 1}/${answerPages.length}`}>
               <header className="worksheet-print-page__header"><div><p>WORD PLANET · 词星球</p><h3>{worksheet.title} · 答案</h3></div><strong>{selectedBook?.label}</strong></header>
-              <ol>{answers.map((answer) => <li key={answer.wordId}>{answer.number}. <strong>{answer.answer}</strong></li>)}</ol>
+              <ol role="list" start={pageIndex * 30 + 1}>{answers.map((answer) => <li key={answer.wordId} value={answer.number}>{answer.number}. <strong>{answer.answer}</strong></li>)}</ol>
               <footer>答案页 · 建议完成题目后由家长核对 · 第 {pageIndex + 1}/{answerPages.length} 页</footer>
             </section>)}
+          </div>
         </div>
       )}
     </section>

@@ -159,6 +159,14 @@ describe('bubble game engine', () => {
     expect(() => createGameResult([])).toThrow(/completed/i)
   })
 
+  it('does not turn a corrected round into a first-try correct result', () => {
+    const round = createGameRounds(demoWords, 3, 1)[0]
+    const wrongId = round.choices.find(choice => choice.id !== round.target.id)!.id
+    const missed = recordGameAnswer(createGameRoundState(round), wrongId)
+    const corrected = recordGameAnswer(missed, round.target.id)
+    expect(createGameResult([corrected])).toMatchObject({ rounds: 1, correctRounds: 0 })
+  })
+
   it('aggregates only unique completed rounds from one verified source-set session', () => {
     const complete = (round: ReturnType<typeof createGameRound>) => recordGameAnswer(createGameRoundState(round), round.target.id)
     const demoSession = createGameRounds(demoWords.slice(0, 2), 31, 2)

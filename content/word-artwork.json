@@ -1,4 +1,11 @@
 {
+  "jump": {
+    "src": "word-art/jump.webp",
+    "alt": "双脚离地、开心跳起的小朋友",
+    "license": "original-generated-reviewed",
+    "author": "词星球 · AI 辅助制作",
+    "note": "跳跃动作记忆插图，已核对双脚离地，非教材原图。"
+  },
   "sport": {
     "src": "word-art/sport.webp",
     "alt": "足球、篮球、网球拍和运动鞋",

@@ -1,5 +1,5 @@
 import { Lightbulb } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 type WordArtworkProps = {
   image: { src: string; alt: string; license: string }
@@ -7,17 +7,21 @@ type WordArtworkProps = {
   meaningZh?: string
   wordId?: string
   revealTerm?: boolean
+  priority?: boolean
 }
 
-export function WordArtwork({ image, term, meaningZh = '', wordId, revealTerm = true }: WordArtworkProps) {
-  const [failed, setFailed] = useState(false)
+export function artworkSource(src: string, revealTerm = true) {
+  if (/^word-art\/[\w-]+\.(svg|webp)$/.test(src)) return `${import.meta.env.BASE_URL}${src}`
+  return /^https:\/\//.test(src) && revealTerm ? src : null
+}
+
+export function WordArtwork({ image, meaningZh = '', revealTerm = true, priority = false }: WordArtworkProps) {
+  const [settled, setSettled] = useState<{ source: string; status: 'loaded' | 'failed' } | null>(null)
   const bundledArtwork = /^word-art\/[\w-]+\.(svg|webp)$/.test(image.src)
-  const safeRemoteArtwork = /^https:\/\//.test(image.src) && revealTerm
-  const source = bundledArtwork ? `${import.meta.env.BASE_URL}${image.src}` : safeRemoteArtwork ? image.src : null
+  const source = artworkSource(image.src, revealTerm)
 
-  useEffect(() => setFailed(false), [image.src, wordId])
-
-  if (!source || failed) {
+  const status = settled?.source === source ? settled.status : 'loading'
+  if (!source || status === 'failed') {
     return (
       <div className="word-artwork word-artwork--clue" role="img" aria-label={`词义联想：${meaningZh || '看提示想一想'}`}>
         <Lightbulb aria-hidden="true" weight="duotone" />
@@ -28,13 +32,19 @@ export function WordArtwork({ image, term, meaningZh = '', wordId, revealTerm = 
   }
 
   return (
-    <img
-      className="word-artwork"
-      src={source}
-      alt={bundledArtwork || revealTerm ? image.alt : meaningZh}
-      loading="lazy"
-      decoding="async"
-      onError={() => setFailed(true)}
-    />
+    <div className="word-artwork word-artwork--frame" data-bundled={bundledArtwork} data-ready={status === 'loaded'}>
+      {status !== 'loaded' && <div className="word-artwork__placeholder" aria-hidden="true"><Lightbulb weight="duotone" /><span>{meaningZh || '看提示想一想'}</span></div>}
+      <img
+        key={source}
+        className="word-artwork__image"
+        src={source}
+        alt={image.alt}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchPriority={priority ? 'high' : 'auto'}
+        decoding="async"
+        onLoad={() => setSettled({ source, status: 'loaded' })}
+        onError={() => setSettled({ source, status: 'failed' })}
+      />
+    </div>
   )
 }

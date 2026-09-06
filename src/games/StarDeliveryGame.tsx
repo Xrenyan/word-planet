@@ -1,11 +1,11 @@
 import { ArrowLeft, ArrowRight, CheckCircle, Package, Pause, Play, RocketLaunch } from '@phosphor-icons/react'
-import { useEffect, useId, useReducer, useRef } from 'react'
+import { useCallback, useEffect, useId, useReducer, useRef } from 'react'
 
 import { WordArtwork } from '../learning/WordArtwork'
 import { createDeliverySchedule } from './deliveryEngine'
-import type { GameAttempt, GameRound, GameWord } from './engine'
+import type { GameAttempt, GameCompletionCallbacks, GameRound, GameWord } from './engine'
 
-type StarDeliveryGameProps = {
+type StarDeliveryGameProps = GameCompletionCallbacks & {
   words: readonly GameWord[]
   rounds?: number
   seed?: number
@@ -48,7 +48,7 @@ function deliveryReducer(state: DeliveryState, action: DeliveryAction): Delivery
   if (state.status !== 'running' || action.roundId !== state.currentRoundId || action.roundIndex !== state.roundIndex) return state
   const attempted = state.attempted + 1
   const correct = state.correct + (action.correct ? 1 : 0)
-  const feedback = action.correct ? '投递正确，下一单出发！' : '没关系，这一单也安全送达了，继续出发！'
+  const feedback = action.correct ? '投递正确，下一单出发！' : '这一单选错了，记住提示，下一单再试试！'
   if (state.roundIndex + 1 >= action.roundCount) {
     return { ...state, status: 'complete', attempted, correct, feedback, reason: 'schedule' }
   }
@@ -56,23 +56,40 @@ function deliveryReducer(state: DeliveryState, action: DeliveryAction): Delivery
   return { ...state, roundIndex: state.roundIndex + 1, currentRoundId: action.nextRoundId, attempted, correct, feedback }
 }
 
-export function StarDeliveryGame({ words, rounds = 20, seed = 20260821, onReturnToLearning, onBackToHub, onAttempt }: StarDeliveryGameProps) {
+export function StarDeliveryGame({ words, rounds = 20, seed = 20260821, ...props }: StarDeliveryGameProps) {
   const schedule = createDeliverySchedule(words, seed, rounds)
-  return <StarDeliverySession key={JSON.stringify(schedule)} schedule={schedule} onReturnToLearning={onReturnToLearning} onBackToHub={onBackToHub} onAttempt={onAttempt} />
+  return <StarDeliverySession key={JSON.stringify(schedule)} schedule={schedule} {...props} />
 }
 
-function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAttempt }: { schedule: readonly GameRound[]; onReturnToLearning: () => void; onBackToHub: () => void; onAttempt?: (attempt: GameAttempt) => void }) {
+function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAttempt, onComplete, onReplay, onNextChallenge }: Omit<StarDeliveryGameProps, 'words' | 'seed' | 'rounds'> & { schedule: readonly GameRound[] }) {
   const titleId = `delivery-game-title-${useId()}`
   const [state, dispatch] = useReducer(deliveryReducer, schedule, createInitialState)
+  const eventStateRef = useRef(state)
+  const completionReportedRef = useRef(false)
   const titleRef = useRef<HTMLHeadingElement>(null)
   const choiceRefs = useRef(new Map<string, HTMLButtonElement>())
   const current = schedule[state.roundIndex]
 
+  // Use the same pure transition for UI and callbacks; rejected events never escape as records.
+  const send = useCallback((action: DeliveryAction) => {
+    const previous = eventStateRef.current
+    const next = deliveryReducer(previous, action)
+    eventStateRef.current = next
+    if (next !== previous) dispatch(action)
+    return next.attempted > previous.attempted
+  }, [])
+
+  useEffect(() => {
+    if (state.status !== 'complete' || completionReportedRef.current || !onComplete) return
+    completionReportedRef.current = true
+    onComplete({ completedRounds: state.attempted, totalRounds: schedule.length, firstTryCorrect: state.correct })
+  }, [state.status, state.attempted, state.correct, schedule.length, onComplete])
+
   useEffect(() => {
     if (state.status !== 'running') return undefined
-    const interval = window.setInterval(() => dispatch({ type: 'tick' }), 1_000)
+    const interval = window.setInterval(() => send({ type: 'tick' }), 1_000)
     return () => window.clearInterval(interval)
-  }, [state.status])
+  }, [state.status, send])
 
   useEffect(() => {
     if (state.status === 'idle' || state.status === 'complete') {
@@ -87,9 +104,8 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
   }, [current, state.status])
 
   function answerCurrent(choiceId: string) {
-    if (state.status !== 'running') return
-    onAttempt?.({ wordId: current.target.id, outcome: choiceId === current.target.id ? 'correct' : 'missed' })
-    dispatch({
+    if (!current.choices.some(choice => choice.id === choiceId)) return
+    const accepted = send({
       type: 'answer',
       correct: choiceId === current.target.id,
       roundCount: schedule.length,
@@ -97,6 +113,7 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
       roundIndex: current.roundIndex,
       nextRoundId: schedule[state.roundIndex + 1]?.roundId ?? null,
     })
+    if (accepted) onAttempt?.({ wordId: current.target.id, outcome: choiceId === current.target.id ? 'correct' : 'missed' })
   }
 
   if (state.status === 'complete') {
@@ -104,11 +121,15 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
       <section className="delivery-game delivery-game--complete" aria-labelledby={titleId}>
         <div className="delivery-game__complete-badge"><CheckCircle aria-hidden="true" weight="fill" /></div>
         <p className="demo-disclaimer">游戏星岛</p>
-        <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>速递完成</h2>
+        <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>{state.reason === 'schedule' ? '速递完成' : '本次速递结束'}</h2>
         <p className="delivery-game__result">答对 {state.correct} / 作答 {state.attempted}</p>
-        <p>{state.reason === 'time' ? '时间到，速递已安全停靠。' : `全部 ${schedule.length} 单都已送达。`}</p>
+        <p>完成 {state.attempted} / {schedule.length} 单</p>
+        <p>{state.reason === 'time' ? '时间到，速递已安全停靠。' : `全部 ${schedule.length} 单都已作答。`}</p>
+        {state.reason === 'time' && <p>还有 {schedule.length - state.attempted} 单未完成，可以再挑战一次。</p>}
         <p>辛苦啦！再选个游戏，或回去学单词吧。</p>
         <div className="delivery-game__complete-actions">
+          {onReplay && <button className="game-back" type="button" onClick={onReplay}>再玩一次</button>}
+          {onNextChallenge && <button className="delivery-game__return" type="button" onClick={onNextChallenge}>下一关 <ArrowRight aria-hidden="true" weight="bold" /></button>}
           <button className="game-back" type="button" onClick={onBackToHub}><ArrowLeft aria-hidden="true" weight="bold" /> 返回游戏中心</button>
           <button className="delivery-game__return" type="button" onClick={onReturnToLearning}>回到学习 <ArrowRight aria-hidden="true" weight="bold" /></button>
         </div>
@@ -124,7 +145,7 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
         <p className="demo-disclaimer">游戏星岛</p>
         <h2 ref={titleRef} id={titleId} data-route-heading tabIndex={-1}>星际速递</h2>
         <p>准备好后再开始。30 秒内最多完成 {schedule.length} 单，看图和中文选择英文。</p>
-        <button className="delivery-game__start" type="button" onClick={() => dispatch({ type: 'start' })}><Play aria-hidden="true" weight="fill" /> 开始 30 秒速递</button>
+        <button className="delivery-game__start" type="button" onClick={() => send({ type: 'start' })}><Play aria-hidden="true" weight="fill" /> 开始 30 秒速递</button>
         <p className="delivery-game__note">按下开始才计时，途中也可以暂停休息。</p>
       </section>
     )
@@ -145,19 +166,19 @@ function StarDeliverySession({ schedule, onReturnToLearning, onBackToHub, onAtte
       <div className="delivery-game__hud">
         <p role="timer" aria-live="off" aria-label={`剩余时间 ${state.remaining} 秒`}>{state.remaining} 秒</p>
         <p aria-label={`已作答 ${state.attempted} 单，答对 ${state.correct} 单`}>作答 {state.attempted} · 答对 {state.correct}</p>
-        <button type="button" onClick={() => dispatch({ type: paused ? 'resume' : 'pause' })}>
+        <button type="button" onClick={() => send({ type: paused ? 'resume' : 'pause' })}>
           {paused ? <Play aria-hidden="true" weight="fill" /> : <Pause aria-hidden="true" weight="fill" />}{paused ? '继续' : '暂停'}
         </button>
       </div>
       <div className={`delivery-game__stage${paused ? ' delivery-game__stage--paused' : ''}`} aria-busy={paused}>
         <figure className="delivery-game__target" data-testid="delivery-target" data-word-id={current.target.id}>
-          <WordArtwork revealTerm={false} wordId={current.target.id} meaningZh={current.target.meaningZh} image={current.target.image} term={current.target.term} />
+          <WordArtwork priority revealTerm={false} wordId={current.target.id} meaningZh={current.target.meaningZh} image={current.target.image} term={current.target.term} />
           <figcaption>把“{current.target.meaningZh}”送到正确的英文站点</figcaption>
         </figure>
         <div className="delivery-game__choices" aria-label="速递英文站点">
           {current.choices.map((choice) => (
             <button
-              key={choice.id}
+              key={`${current.roundId}-${choice.id}`}
               ref={(node) => { if (node) choiceRefs.current.set(choice.id, node); else choiceRefs.current.delete(choice.id) }}
               type="button"
               data-word-id={choice.id}

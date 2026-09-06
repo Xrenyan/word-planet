@@ -9,6 +9,13 @@ const MAX_ROUNDS = 20
 export type GameWord = VocabularyWord | PublicMatchedGameWord
 export type GameScope = 'formal' | 'source-matched'
 export type GameAttempt = Readonly<{ wordId: string; outcome: 'correct' | 'missed' }>
+/** A terminal run is not necessarily a fully completed challenge (for example, a timeout). */
+export type GameRunResult = Readonly<{ completedRounds: number; totalRounds: number; firstTryCorrect: number; usedHelp?: boolean }>
+export type GameCompletionCallbacks = {
+  onComplete?: (result: GameRunResult) => void
+  onReplay?: () => void
+  onNextChallenge?: () => void
+}
 export type GameChoice = Readonly<{ id: string; term: string; meaningZh: string; image: WordImage }>
 export type GameRound = Readonly<{
   seed: number
@@ -24,6 +31,7 @@ export type GameRound = Readonly<{
   choices: readonly GameChoice[]
 }>
 export type GameRoundState = Readonly<{ round: GameRound; status: 'answering' | 'complete'; attempts: readonly GameAttempt[] }>
+/** rounds counts eventual completion; correctRounds counts unassisted first answers. */
 export type GameResult = Readonly<{ rounds: number; correctRounds: number; attempts: readonly GameAttempt[] }>
 export function gameScopeLabel(scope: GameScope) { return scope === 'source-matched' ? '公开来源匹配 · 待教材页复核' : '已核验教材词汇' }
 
@@ -139,4 +147,18 @@ export function recordGameAnswer(state: GameRoundState | unknown, wordId: string
 export function validateRoundCount(rounds: unknown): number { if (typeof rounds !== 'number' || !Number.isInteger(rounds)) return fail('round count must be an integer'); if (rounds < 1 || rounds > MAX_ROUNDS) return fail(`round count must be between 1 and ${MAX_ROUNDS}`); return rounds }
 /** Finite deterministic orchestration used by the UI; immediate targets never repeat when avoidable. */
 export function createGameRounds(words: readonly GameWord[] | unknown, seed: number, rounds: number): readonly GameRound[] { const parsedSeed = SeedSchema.safeParse(seed); if (!parsedSeed.success) return fail('a non-negative integer seed is required'); const count = validateRoundCount(rounds); const validated = validateWords(words); const result: GameRound[] = []; for (let index = 0; index < count; index += 1) result.push(createRoundFromValidated(validated, parsedSeed.data, count, index)); return cloneAndFreeze(result) as readonly GameRound[] }
-export function createGameResult(states: readonly GameRoundState[] | unknown): GameResult { if (!Array.isArray(states) || states.length < 1 || states.length > MAX_ROUNDS) return fail('a finite completed state list is required'); const completedStates = states.map(parseState); if (completedStates.some((state) => state.status !== 'complete')) return fail('game results require completed states'); const firstRound = completedStates[0].round; if (completedStates.some((state) => state.round.scope !== firstRound.scope || state.round.sourceSetId !== firstRound.sourceSetId || state.round.sessionId !== firstRound.sessionId)) return fail('game results require one scope, source set, and session'); if (completedStates.length !== firstRound.roundCount) return fail('game results must include every scheduled round'); const indices = completedStates.map((state) => state.round.roundIndex); if (new Set(indices).size !== firstRound.roundCount || indices.some((index) => index < 0 || index >= firstRound.roundCount)) return fail('game results must include each scheduled round index exactly once'); for (let index = 0; index < firstRound.roundCount; index += 1) if (!indices.includes(index)) return fail('game results must include every scheduled round'); if (new Set(completedStates.map((state) => state.round.roundId)).size !== completedStates.length || new Set(completedStates.map((state) => state.round.seed)).size !== completedStates.length) return fail('game results cannot include duplicate round identities or seeds'); const attempts = completedStates.flatMap((state) => state.attempts); return cloneAndFreeze({ rounds: completedStates.length, correctRounds: completedStates.length, attempts }) as GameResult }
+export function createGameResult(states: readonly GameRoundState[] | unknown): GameResult {
+  if (!Array.isArray(states) || states.length < 1 || states.length > MAX_ROUNDS) return fail('a finite completed state list is required')
+  const completedStates = states.map(parseState)
+  if (completedStates.some((state) => state.status !== 'complete')) return fail('game results require completed states')
+  const firstRound = completedStates[0].round
+  if (completedStates.some((state) => state.round.scope !== firstRound.scope || state.round.sourceSetId !== firstRound.sourceSetId || state.round.sessionId !== firstRound.sessionId)) return fail('game results require one scope, source set, and session')
+  if (completedStates.length !== firstRound.roundCount) return fail('game results must include every scheduled round')
+  const indices = completedStates.map((state) => state.round.roundIndex)
+  if (new Set(indices).size !== firstRound.roundCount || indices.some((index) => index < 0 || index >= firstRound.roundCount)) return fail('game results must include each scheduled round index exactly once')
+  for (let index = 0; index < firstRound.roundCount; index += 1) if (!indices.includes(index)) return fail('game results must include every scheduled round')
+  if (new Set(completedStates.map((state) => state.round.roundId)).size !== completedStates.length || new Set(completedStates.map((state) => state.round.seed)).size !== completedStates.length) return fail('game results cannot include duplicate round identities or seeds')
+  const attempts = completedStates.flatMap((state) => state.attempts)
+  const correctRounds = completedStates.filter((state) => state.attempts[0]?.outcome === 'correct').length
+  return cloneAndFreeze({ rounds: completedStates.length, correctRounds, attempts }) as GameResult
+}

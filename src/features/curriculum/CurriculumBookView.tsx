@@ -91,7 +91,7 @@ export function CurriculumBookView({ api, bookId, bookLabel, onBack, onStudy }: 
         </nav>
         <label className="curriculum-search">查找本册单词<input type="search" placeholder="输入英文或中文，例如 sport / 运动" value={query} onChange={event => setQuery(event.target.value)} /></label>
         {selectedWord && !query.trim() && <section ref={focusRef} className="curriculum-book-view__focus" aria-label={`当前单词 ${selectedWord.term}`}>
-          <WordArtwork image={selectedWord.image} term={selectedWord.term} meaningZh={selectedWord.meaningZh} wordId={selectedWord.id} />
+          <WordArtwork priority image={selectedWord.image} term={selectedWord.term} meaningZh={selectedWord.meaningZh} wordId={selectedWord.id} />
           <div><p className="status-pill">{unitLabel(selectedWord)}</p><h3>{selectedWord.term}</h3><p>{selectedWord.meaningZh}</p><PronunciationControls key={selectedWord.id} word={selectedWord} showRecorder={false} /><Pressable className="dashboard-primary-button" onClick={() => onStudy(selectedWord)}>从这里开始学习</Pressable><WordDetails word={selectedWord} /></div>
         </section>}
         <section className="curriculum-book-view__unit">

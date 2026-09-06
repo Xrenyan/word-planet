@@ -11,6 +11,48 @@ afterEach(() => {
 })
 
 describe('StarDeliveryGame', () => {
+  it('records only accepted actions, detaches stale-round controls, and reports the completed schedule once', () => {
+    const onAttempt = vi.fn(), onComplete = vi.fn(), onReplay = vi.fn(), onNextChallenge = vi.fn()
+    const props = { words: demoWords, rounds: 2, seed: 71, onAttempt, onComplete, onReplay, onNextChallenge, onBackToHub: vi.fn(), onReturnToLearning: vi.fn() }
+    const view = render(<StarDeliveryGame {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: '开始 30 秒速递' }))
+    const target = screen.getByTestId('delivery-target').dataset.wordId!
+    const first = screen.getAllByRole('button').find(button => button.dataset.wordId === target)!
+    act(() => { screen.getByRole('button', { name: '暂停' }).click(); first.click() })
+    expect(onAttempt).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '继续' }))
+    act(() => { first.click(); first.click() })
+    expect(onAttempt).toHaveBeenCalledExactlyOnceWith({ wordId: target, outcome: 'correct' })
+    expect(first.isConnected).toBe(false)
+    fireEvent.click(first)
+    expect(onAttempt).toHaveBeenCalledOnce()
+    expect(onComplete).not.toHaveBeenCalled()
+    const secondTarget = screen.getByTestId('delivery-target').dataset.wordId!
+    const wrong = screen.getAllByRole('button').find(button => button.dataset.wordId && button.dataset.wordId !== secondTarget)!
+    act(() => { wrong.click(); wrong.click() })
+    expect(onAttempt).toHaveBeenCalledTimes(2)
+    expect(onComplete).toHaveBeenCalledExactlyOnceWith({ completedRounds: 2, totalRounds: 2, firstTryCorrect: 1 })
+    view.rerender(<StarDeliveryGame {...props} />)
+    expect(onComplete).toHaveBeenCalledOnce()
+    fireEvent.click(screen.getByRole('button', { name: '再玩一次' }))
+    fireEvent.click(screen.getByRole('button', { name: '下一关' }))
+    expect(onReplay).toHaveBeenCalledOnce(); expect(onNextChallenge).toHaveBeenCalledOnce()
+  })
+
+  it('reports an unanswered timeout as zero completion and rejects an answer after the final tick', () => {
+    vi.useFakeTimers()
+    const onAttempt = vi.fn(), onComplete = vi.fn()
+    render(<StarDeliveryGame words={demoWords} rounds={2} onAttempt={onAttempt} onComplete={onComplete} onBackToHub={vi.fn()} onReturnToLearning={vi.fn()} />)
+    fireEvent.click(screen.getByRole('button', { name: '开始 30 秒速递' }))
+    const answer = screen.getAllByRole('button').find(button => button.dataset.wordId)!
+    act(() => { vi.advanceTimersByTime(30_000); answer.click() })
+    expect(onAttempt).not.toHaveBeenCalled()
+    expect(onComplete).toHaveBeenCalledExactlyOnceWith({ completedRounds: 0, totalRounds: 2, firstTryCorrect: 0 })
+    expect(screen.getByRole('heading', { name: '本次速递结束' })).toBeVisible()
+    expect(screen.getByText('完成 0 / 2 单')).toBeVisible()
+    expect(screen.queryByRole('button', { name: '再玩一次' })).not.toBeInTheDocument()
+  })
+
   it('does not strand the current round when pause wins before a same-frame answer', () => {
     render(<StarDeliveryGame words={demoWords} rounds={2} seed={71} onBackToHub={vi.fn()} onReturnToLearning={vi.fn()} />)
     fireEvent.click(screen.getByRole('button', { name: '开始 30 秒速递' }))
@@ -100,7 +142,7 @@ describe('StarDeliveryGame', () => {
 
     act(() => { correct.click(); vi.advanceTimersByTime(1_000) })
 
-    expect(screen.getByRole('heading', { name: '速递完成' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: '本次速递结束' })).toBeVisible()
     expect(screen.getByText('答对 1 / 作答 1')).toBeVisible()
     expect(screen.getByText('时间到，速递已安全停靠。')).toBeVisible()
   })
@@ -129,7 +171,7 @@ describe('StarDeliveryGame', () => {
     expect(setInterval).toHaveBeenCalledTimes(2)
     await act(() => vi.advanceTimersByTimeAsync(26_000))
 
-    expect(screen.getByRole('heading', { name: '速递完成' })).toHaveFocus()
+    expect(screen.getByRole('heading', { name: '本次速递结束' })).toHaveFocus()
     expect(screen.getByText('时间到，速递已安全停靠。')).toBeVisible()
     expect(screen.getByText('答对 0 / 作答 0')).toBeVisible()
     expect(screen.queryByText(/-1 秒/)).not.toBeInTheDocument()
@@ -153,7 +195,7 @@ describe('StarDeliveryGame', () => {
     await user.click(secondWrong)
 
     expect(screen.getByRole('heading', { name: '速递完成' })).toBeVisible()
-    expect(screen.getByText('全部 2 单都已送达。')).toBeVisible()
+    expect(screen.getByText('全部 2 单都已作答。')).toBeVisible()
     expect(screen.getByText('答对 1 / 作答 2')).toBeVisible()
     expect(screen.getByRole('button', { name: '返回游戏中心' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '回到学习' })).toBeEnabled()

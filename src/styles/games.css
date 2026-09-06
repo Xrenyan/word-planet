@@ -16,6 +16,37 @@
   box-shadow: none;
 }
 .game-hub { gap: 0; }
+.game-hub__mascot { width: 96px; height: 96px; object-fit: contain; flex-shrink: 0; }
+.game-passport { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: center; padding: 22px 26px; margin-bottom: 18px; border-radius: 22px; background: linear-gradient(115deg,#eee8ff,#edf7f6); }
+.game-passport > div, .game-journey, .game-journey > span:last-child, .game-award { display: flex; align-items: center; gap: 10px; }
+.game-passport > div > svg { width: 28px; height: 28px; color: #997422; }
+.game-passport strong { font-size: 20px; }
+.game-passport > span { font-weight: 750; color: #6554d9; }
+.game-passport p { grid-column: 1/-1; margin: 0; color: #646880; font-size: 14px; }
+.game-passport__note { font-size: 13px; color: #646880; margin: 22px 0 0; }
+.game-levels { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.app-shell__main .game-levels button { padding: 8px 12px; font-size: 13px; border-radius: 999px; min-height: 44px; }
+.game-levels button[data-completed='true'] { background: #fff4d4; border-color: #e8d597; color: #77540b; }
+.game-levels button svg { width: 16px; height: 16px; }
+.game-journey { justify-content: space-between; margin: 0 0 22px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border); font-size: 14px; color: #646880; }
+.game-journey > span:last-child { color: #a78020; }
+.game-journey svg { width: 20px; height: 20px; }
+.game-award { margin-bottom: 24px; padding: 22px 24px; border-radius: 22px; background: #fff3cf; color: #75520c; animation: star-arrive 360ms var(--ease-feedback); }
+.game-award > svg { width: 44px; height: 44px; flex-shrink: 0; }
+.game-award strong { font-size: 22px; }
+.game-award p { margin: 5px 0 0; font-size: 14px; }
+@keyframes star-arrive { from { opacity: .4; transform: translateY(6px) scale(.99); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .game-award { animation: none; } }
+@media (max-width: 540px) {
+  .game-hub__mascot { width: 64px; height: 64px; }
+  .game-passport { padding: 20px; gap: 10px; grid-template-columns: 1fr; }
+  .game-passport strong { font-size: 18px; }
+  .game-passport > span { padding-left: 38px; }
+  .game-journey { gap: 14px; }
+  .game-journey > span:last-child { flex-shrink: 0; gap: 4px; }
+  .game-award { padding: 18px; }
+  .game-award strong { font-size: 20px; }
+}
 .game-hub__heading,
 .bubble-game__header,
 .train-game__header,

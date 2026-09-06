@@ -19,6 +19,79 @@ const nextWord = {
 }
 
 describe('PracticePage verified session', () => {
+  it('practices exactly the supplied review queue across books without extending it', async () => {
+    const user = userEvent.setup()
+    const lastReviewWord = { ...nextWord, bookId: 'g4-upper', unit: 6 }
+    const extra = { ...word, id: 'unrelated', term: 'pear', meaningZh: '梨' }
+    const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: word.bookId, words: [word, extra, nextWord] }) }
+    const onBack = vi.fn()
+    render(<PracticePage word={word} reviewWords={[word, lastReviewWord]} api={api} onBack={onBack} />)
+
+    expect(await screen.findByText('第 1 / 2 词')).toBeVisible()
+    expect(screen.getByRole('button', { name: '看义拼写' })).toHaveAttribute('aria-pressed', 'true')
+    await user.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
+    await screen.findByText('第 2 / 2 词')
+    expect(screen.getByRole('region', { name: '中文提示' })).toHaveTextContent('猫')
+    await user.type(screen.getByLabelText('根据中文写英文'), 'cat{enter}')
+    expect(await screen.findByRole('heading', { name: '这组复习完成啦！' })).toBeVisible()
+    expect(screen.queryByRole('button', { name: '继续下一组' })).not.toBeInTheDocument()
+    expect(screen.queryByText('pear')).not.toBeInTheDocument()
+    expect(api.getWords).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: '返回错词本' }))
+    expect(onBack).toHaveBeenCalledWith({ unconfirmedWordIds: [], confirmedWordIds: [] })
+  })
+
+  it('keeps a word in the short retry group when it is missed again', async () => {
+    const user = userEvent.setup()
+    render(<PracticePage reviewWords={[word]} />)
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      await user.type(screen.getByLabelText('根据中文写英文'), 'pear{enter}')
+      await user.clear(screen.getByLabelText('根据中文写英文'))
+      await user.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
+      await screen.findByRole('heading', { name: '这组复习完成啦！' })
+      expect(screen.getByText('首次答对 0 / 1')).toBeVisible()
+      expect(screen.getByText('再巩固')).toBeVisible()
+      await user.click(screen.getByRole('button', { name: '再练错词（1）' }))
+    }
+    expect(screen.getByText('第 1 / 1 词')).toBeVisible()
+    expect(screen.getByRole('region', { name: '中文提示' })).toHaveTextContent('苹果')
+  })
+
+  it('returns immediately while a review save is pending and identifies the unconfirmed word', async () => {
+    const user = userEvent.setup()
+    let finishSave!: (status: 'memory-only') => void
+    const onBack = vi.fn()
+    render(<PracticePage reviewWords={[word]} onBack={onBack} progressRecorder={{ record: () => new Promise(resolve => { finishSave = resolve }) }} />)
+    await user.type(screen.getByLabelText('根据中文写英文'), 'apple{enter}')
+    await user.click(screen.getByRole('button', { name: '返回错词本' }))
+    expect(onBack).toHaveBeenCalledWith({ unconfirmedWordIds: [word.id], confirmedWordIds: [] })
+    await act(async () => finishSave('memory-only'))
+    expect(onBack).toHaveBeenCalledOnce()
+  })
+
+  it('deduplicates matching artwork sources for the next two words', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const sharedSource = 'https://images.example.test/shared-upcoming-art.jpg'
+    const words = [word, { ...nextWord, image: { ...nextWord.image, src: sharedSource } }, { ...nextWord, id: 'third-word', image: { ...nextWord.image, src: sharedSource } }]
+    const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: word.bookId, words }) }
+    render(<PracticePage word={word} api={api} />)
+    await screen.findByText('第 1 / 3 词')
+    expect(document.querySelectorAll(`link[rel="preload"][href="${sharedSource}"]`)).toHaveLength(1)
+    expect(error.mock.calls.flat().join(' ')).not.toContain('same key')
+    error.mockRestore()
+  })
+
+  it('prioritizes the visible artwork and warms only the next two images', async () => {
+    const words = Array.from({ length: 5 }, (_, i) => ({ ...word, id: `image-word-${i}`, image: { ...word.image, src: `https://images.example.test/word-${i}.jpg`, alt: `配图${i}` } }))
+    const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: word.bookId, words }) }
+    render(<PracticePage word={words[0]} api={api} />)
+    await screen.findByText('第 1 / 5 词')
+    expect(screen.getByAltText('配图0')).toHaveAttribute('loading', 'eager')
+    const sources = [...document.querySelectorAll<HTMLLinkElement>('link[rel="preload"][as="image"]')].map(link => link.href)
+    expect(sources).toContain('https://images.example.test/word-1.jpg')
+    expect(sources).toContain('https://images.example.test/word-2.jpg')
+    expect(sources).not.toContain('https://images.example.test/word-4.jpg')
+  })
   it('keeps a failed-save warning visible after automatically advancing', async () => {
     const api = { getBooks: vi.fn(), getWords: vi.fn().mockResolvedValue({ bookId: 'g3-upper', words: [word, nextWord] }) }
     render(<PracticePage word={word} api={api} progressRecorder={{ record: vi.fn().mockResolvedValue('memory-only') }} />)

@@ -15,6 +15,31 @@ function choiceByWordId(name: RegExp, wordId: string) {
 }
 
 describe('PlanetGuardianGame', () => {
+  it('reports a finished three-skill run once and distinguishes help from an unassisted first answer', async () => {
+    const user = userEvent.setup()
+    const onComplete = vi.fn(), onReplay = vi.fn(), onNextChallenge = vi.fn()
+    const props = { words: [demoWords[0]], seed: 0, onComplete, onReplay, onNextChallenge, onBackToHub: vi.fn(), onReturnToLearning: vi.fn(), speechDependencies: { synthesis: null } }
+    const view = render(<PlanetGuardianGame {...props} />)
+    await user.click(screen.getByRole('button', { name: demoWords[0].term }))
+    await user.click(screen.getByRole('button', { name: '点亮下一层' }))
+    await user.click(screen.getByRole('button', { name: '播放守护关英式发音' }))
+    expect(await screen.findByText(/无声提示（英式）/)).toBeVisible()
+    await user.click(screen.getByRole('button', { name: `选择中文：${demoWords[0].meaningZh}` }))
+    expect(within(screen.getByRole('list', { name: '各层护盾状态' })).getByText('听音：借助提示完成')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '点亮下一层' }))
+    await user.type(screen.getByLabelText('输入守护词英文'), `${demoWords[0].term}{enter}`)
+    expect(onComplete).not.toHaveBeenCalled()
+    const finish = screen.getByRole('button', { name: '查看守护结果' })
+    act(() => { finish.click(); finish.click() })
+    expect(onComplete).toHaveBeenCalledExactlyOnceWith({ completedRounds: 3, totalRounds: 3, firstTryCorrect: 2, usedHelp: true })
+    expect(screen.getByText('首次答对 2 / 3 层')).toBeVisible()
+    view.rerender(<PlanetGuardianGame {...props} />)
+    expect(onComplete).toHaveBeenCalledOnce()
+    await user.click(screen.getByRole('button', { name: '再玩一次' }))
+    await user.click(screen.getByRole('button', { name: '下一关' }))
+    expect(onReplay).toHaveBeenCalledOnce(); expect(onNextChallenge).toHaveBeenCalledOnce()
+  })
+
   it('exposes per-stage outcomes through semantic list items and real text', () => {
     render(<PlanetGuardianGame words={demoWords} seed={83} onReviewMiss={vi.fn()} onBackToHub={vi.fn()} onReturnToLearning={vi.fn()} speechDependencies={{ synthesis: null }} />)
     const list = screen.getByRole('list', { name: '各层护盾状态' })
