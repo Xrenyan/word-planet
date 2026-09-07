@@ -12,13 +12,16 @@ type ReviewState =
 
 export function ReviewCenter({ api, onReview, onOpenCurriculum, retainedItems = [] }: { api: WordPlanetApi; onReview: (items: readonly ReviewItem[]) => void; onOpenCurriculum?: () => void; retainedItems?: readonly ReviewItem[] }) {
   const [state, setState] = useState<ReviewState>({ status: 'loading' })
+  const [category, setCategory] = useState<'all' | 'missed' | 'due'>('all')
   const load = useCallback(async (signal?: AbortSignal) => {
     if (!api.getReview) { setState({ status: 'error' }); return }
     setState({ status: 'loading' })
     try {
       const response = await api.getReview('local-child', signal)
+      if (signal?.aborted) return
       setState({ status: 'ready', items: response.items })
     } catch (error) {
+      if (signal?.aborted) return
       if (error instanceof DOMException && error.name === 'AbortError') return
       setState({ status: 'error' })
     }
@@ -32,6 +35,12 @@ export function ReviewCenter({ api, onReview, onOpenCurriculum, retainedItems = 
 
   const items = [...new Map([...(state.status === 'ready' ? state.items : []), ...retainedItems].map(item => [item.word.id, item])).values()]
   const practiceCount = items.filter(item => item.weakness > 0).length
+  const visibleItems = items.filter(item => category === 'all' || (category === 'missed' ? item.weakness > 0 : item.weakness === 0))
+  const categories = [
+    { id: 'all', label: '全部', count: items.length },
+    { id: 'missed', label: '再练错词', count: practiceCount },
+    { id: 'due', label: '到期复习', count: items.length - practiceCount },
+  ] as const
 
   return (
     <section className="review-center" aria-labelledby="review-center-title">
@@ -43,8 +52,10 @@ export function ReviewCenter({ api, onReview, onOpenCurriculum, retainedItems = 
       {state.status === 'error' && <div className="review-center__state" role="alert"><p>暂时读不到你的复习记录，请再试一次。</p><Pressable onClick={() => void load()}>重新读取</Pressable></div>}
       {retainedItems.length > 0 && <p className="review-center__save-warning" role="alert">保存还没确认，这些词先为你保留。</p>}
       {state.status === 'ready' && items.length === 0 && <div className="review-center__empty" role="status"><Sparkle aria-hidden="true" weight="fill" /><div><strong>现在没有需要复习的单词</strong><p>去「教材」选几个单词练一练吧。还没记牢的词，会在这里等你再试一次。</p>{onOpenCurriculum && <Pressable className="dashboard-primary-button" onClick={onOpenCurriculum}>去选单词<ArrowRight aria-hidden="true" /></Pressable>}</div></div>}
-      {items.length > 0 && <div className="review-center__session-start"><div><strong>本次可练 {items.length} 个单词</strong><p>再练 {practiceCount} 个 · 到期复习 {items.length - practiceCount} 个</p></div><Pressable className="dashboard-primary-button" onClick={() => onReview(items.slice(0, 5))}>{items.length >= 5 ? '练前 5 个' : `练这 ${items.length} 个`}<ArrowRight aria-hidden="true" /></Pressable></div>}
-      {items.length > 0 && <ul className="review-center__list">{items.map((item) => <li key={item.word.id}>
+      {items.length > 0 && <div className="review-center__filters" role="group" aria-label="复习分类">{categories.map(item => <button key={item.id} type="button" aria-pressed={category === item.id} onClick={() => setCategory(item.id)}>{item.label} <span>{item.count}</span></button>)}</div>}
+      {items.length > 0 && visibleItems.length === 0 && <div className="review-center__state" role="status"><p>{category === 'missed' ? '这次没有需要再练的错词。' : '还没有到期的复习词，先练错词也很棒。'}</p><Pressable onClick={() => setCategory('all')}>查看全部复习词</Pressable></div>}
+      {visibleItems.length > 0 && <div className="review-center__session-start"><div><strong>本次可练 {visibleItems.length} 个单词</strong><p>每次最多 5 个，练完再继续。</p></div><Pressable className="dashboard-primary-button" onClick={() => onReview(visibleItems.slice(0, 5))}>{visibleItems.length >= 5 ? '练前 5 个' : `练这 ${visibleItems.length} 个`}<ArrowRight aria-hidden="true" /></Pressable></div>}
+      {visibleItems.length > 0 && <ul className="review-center__list">{visibleItems.map((item) => <li key={item.word.id}>
         <WordArtwork image={item.word.image} term={item.word.term} meaningZh={item.word.meaningZh} wordId={item.word.id} />
         <div><h3>{item.word.term}</h3><p>{item.word.meaningZh}</p><small>{item.weakness > 0 ? '再练一练' : '该复习啦'} · 错 {item.misses} 次 · 对 {item.correct} 次</small></div>
         <Pressable aria-label={`复习 ${item.word.term}`} onClick={() => onReview([item])}>开始复习 <ArrowRight aria-hidden="true" weight="bold" /></Pressable>

@@ -28,6 +28,11 @@ export function createStaticWordPlanetApi(options: StaticClientOptions = {}): Wo
   const progress = options.progress ?? new LocalProgressRepository()
   let catalogRequest: Promise<BooksResponse> | undefined
   const bookRequests = new Map<string, Promise<WordsResponse>>()
+  const loadedBooks = new Map<string, WordsResponse>()
+
+  function cachedWords() {
+    return new Map([...loadedBooks.values()].flatMap((book) => book.words).map((word) => [word.id, word]))
+  }
 
   async function requestJson(path: string) {
     const response = await fetcher(`${baseUrl}${path}`, { headers: { accept: 'application/json' }, signal: AbortSignal.timeout(12000) })
@@ -40,7 +45,14 @@ export function createStaticWordPlanetApi(options: StaticClientOptions = {}): Wo
     const cached = bookRequests.get(bookId)
     if (cached) return withAbort(cached, signal)
     const request = requestJson(`data/books/${encodeURIComponent(bookId)}.json`)
-      .then((value) => WordsResponseSchema.parse(value))
+      .then((value) => {
+        const response = WordsResponseSchema.parse(value)
+        if (response.bookId !== bookId || response.words.some((word) => word.bookId !== bookId)) {
+          throw new Error('static-data-book-mismatch')
+        }
+        loadedBooks.set(bookId, response)
+        return response
+      })
       .catch((error) => {
         bookRequests.delete(bookId)
         throw error
@@ -67,18 +79,24 @@ export function createStaticWordPlanetApi(options: StaticClientOptions = {}): Wo
       return progress.getProgress(profileId)
     },
     async getReview(profileId, signal) {
-      const [catalog, stats] = await Promise.all([
-        this.getBooks(signal),
-        Promise.resolve(progress.dueReviewStats(profileId)),
-      ])
+      signal?.throwIfAborted()
+      const stats = progress.dueReviewStats(profileId)
       if (stats.length === 0) return { profileId, items: [] }
-      const books = await Promise.all(catalog.books.map((book) => getBook(book.id, signal)))
-      const words = new Map(books.flatMap((book) => book.words).map((word) => [word.id, word]))
+      let words = cachedWords()
+      if (stats.some((stat) => !words.has(stat.wordId))) {
+        const catalog = await this.getBooks(signal)
+        await Promise.allSettled(catalog.books
+          .filter((book) => !loadedBooks.has(book.id))
+          .map((book) => getBook(book.id, signal)))
+        signal?.throwIfAborted()
+        words = cachedWords()
+      }
       return {
         profileId,
-        items: stats.flatMap((stat) => {
+        items: stats.map((stat) => {
           const word = words.get(stat.wordId)
-          return word ? [{ word, misses: stat.misses, correct: stat.correct, weakness: stat.weakness, lastAttemptAt: stat.lastAttemptAt, dueAt: stat.dueAt }] : []
+          if (!word) throw new Error('review-words-unavailable')
+          return { word, misses: stat.misses, correct: stat.correct, weakness: stat.weakness, lastAttemptAt: stat.lastAttemptAt, dueAt: stat.dueAt }
         }),
       }
     },

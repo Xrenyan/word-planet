@@ -19,6 +19,18 @@ const nextWord = {
 }
 
 describe('PracticePage verified session', () => {
+  it('does not preload unseen pictures in spelling, listening or mixed practice', async () => {
+    const user = userEvent.setup()
+    const words = [word, { ...nextWord, image: { ...nextWord.image, src: 'https://images.example.test/hidden-cat.jpg' } }]
+    render(<PracticePage reviewWords={words} />)
+    expect(document.querySelector('link[href="https://images.example.test/hidden-cat.jpg"]')).toBeNull()
+    await user.click(screen.getByRole('button', { name: '听音选词' }))
+    expect(document.querySelector('link[href="https://images.example.test/hidden-cat.jpg"]')).toBeNull()
+    await user.click(screen.getByRole('button', { name: '综合闯关' }))
+    expect(document.querySelector('link[href="https://images.example.test/hidden-cat.jpg"]')).toBeNull()
+    await user.click(screen.getByRole('button', { name: '跟读练习' }))
+    expect(document.querySelector('link[href="https://images.example.test/hidden-cat.jpg"]')).not.toBeNull()
+  })
   it('practices exactly the supplied review queue across books without extending it', async () => {
     const user = userEvent.setup()
     const lastReviewWord = { ...nextWord, bookId: 'g4-upper', unit: 6 }

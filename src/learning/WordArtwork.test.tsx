@@ -1,9 +1,30 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { WordArtwork } from './WordArtwork'
 
 describe('WordArtwork', () => {
+  it('lets a failed active illustration retry its own source without reloading the page', () => {
+    render(<WordArtwork priority meaningZh="跳" image={{ src: 'https://example.test/retry-jump.jpg', alt: '跳跃配图', license: 'source' }} term="jump" />)
+    fireEvent.error(screen.getByAltText('跳跃配图'))
+    fireEvent.click(screen.getByRole('button', { name: '重试图片' }))
+    const retried = screen.getByAltText('跳跃配图')
+    expect(retried).toHaveAttribute('src', 'https://example.test/retry-jump.jpg')
+    expect(screen.getByText('跳')).toBeVisible()
+    fireEvent.load(retried)
+    expect(screen.queryByRole('button', { name: '重试图片' })).not.toBeInTheDocument()
+    expect(retried.parentElement).toHaveAttribute('data-ready', 'true')
+  })
+
+  it('shows an already-complete cached image without waiting for another load event', () => {
+    const complete = vi.spyOn(HTMLImageElement.prototype, 'complete', 'get').mockReturnValue(true)
+    const width = vi.spyOn(HTMLImageElement.prototype, 'naturalWidth', 'get').mockReturnValue(640)
+    try {
+      render(<WordArtwork priority meaningZh="跳" image={{ src: 'word-art/jump.webp', alt: '已缓存的跳跃图', license: 'original' }} term="jump" />)
+      expect(screen.getByAltText('已缓存的跳跃图').parentElement).toHaveAttribute('data-ready', 'true')
+      expect(screen.queryByText('跳')).not.toBeInTheDocument()
+    } finally { complete.mockRestore(); width.mockRestore() }
+  })
   it('shows the real meaning immediately while a remote illustration is still loading', () => {
     render(<WordArtwork meaningZh="跳" image={{ src: 'https://example.test/jump.jpg', alt: '跳跃配图', license: 'source' }} term="jump" />)
     expect(screen.getByText('跳')).toBeVisible()

@@ -259,7 +259,9 @@ export function PracticePage({ word, reviewWords, progressRecorder, api, onBack,
     : []
   const offset = activeWord ? [...activeWord.id].reduce((sum, char) => sum + char.charCodeAt(0), 0) % Math.max(1, recognitionCandidates.length) : 0
   const recognitionChoices = [...recognitionCandidates.slice(offset), ...recognitionCandidates.slice(0, offset)]
-  const upcomingArtwork = [...new Set(sessionWords.slice(currentIndex + 1, currentIndex + 3).map(next => artworkSource(next.image.src)).filter((src): src is string => Boolean(src)))]
+  const upcomingArtwork = resolvedMode === 'learn' || resolvedMode === 'speak'
+    ? [...new Set(sessionWords.slice(currentIndex + 1, currentIndex + 3).map(next => artworkSource(next.image.src)).filter((src): src is string => Boolean(src)))]
+    : []
 
   if (finished) return <section className="practice-completion" aria-labelledby="practice-complete-title">
     <BookOpen weight="duotone" aria-hidden="true" />

@@ -135,7 +135,7 @@ export function ProgressDataControls({ api, profileId = 'local-child', download 
     {status === 'loading' && <p role="status">正在读取学习记录…</p>}
     {status === 'error' && <p role="alert">此浏览器暂时无法读取学习记录。</p>}
     {(status === 'ready' || status === 'cleared') && <>
-      <p className="progress-data-controls__count" role="status">{status === 'cleared' ? '学习记录和通关星已清除' : `此设备已保存 ${progress?.totalEvents ?? 0} 条学习记录`}</p>
+      <p className="progress-data-controls__count" role="status">{status === 'cleared' ? '学习记录和通关星已清除' : `当前有 ${progress?.totalEvents ?? 0} 条可备份的学习记录`}</p>
       <p>{passportCount === null ? '暂时读不到通关星，请保留原数据。' : `此设备已保存 ${passportCount} 颗通关星`}</p>
       {passportPending && <p role="status">还有通关进展仅在本页暂存，尚未保存；导出备份会一并包含。刷新或关闭网页可能丢失。</p>}
       <div className="progress-data-controls__actions">

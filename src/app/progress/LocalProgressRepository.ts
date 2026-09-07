@@ -20,31 +20,35 @@ export class LocalProgressRepository {
   private readonly key: string
   private events: LearningEvent[]
   private pending = new Map<string, LearningEvent>()
+  private canWrite = false
+  private hasSnapshot = false
 
   constructor(options: LocalProgressRepositoryOptions = {}) {
     let storage: Storage | null = null
-    try { storage = options.storage === undefined ? (typeof localStorage === 'undefined' ? null : localStorage) : options.storage } catch { /* Storage can be blocked by browser policy. */ }
+    try {
+      storage = options.storage === undefined ? (typeof localStorage === 'undefined' ? null : localStorage) : options.storage
+      this.hasSnapshot = storage === null
+    } catch { /* Storage can be blocked by browser policy. */ }
     this.storage = storage
     this.key = options.key ?? 'word-planet:v1:events'
-    this.events = this.read() ?? []
+    this.events = []
+    this.refresh()
   }
 
   private read() {
     if (!this.storage) return []
     try {
       const value: unknown = JSON.parse(this.storage.getItem(this.key) ?? '[]')
-      if (!Array.isArray(value)) return []
-      return value.flatMap((candidate) => {
-        const parsed = LearningEventSchema.safeParse(candidate)
-        return parsed.success ? [parsed.data] : []
-      })
+      const parsed = LearningEventSchema.array().safeParse(value)
+      return parsed.success ? parsed.data : null
     } catch {
       return null
     }
   }
 
   private persist() {
-    if (!this.storage) return false
+    // A failed read must never turn an unknown or damaged saved record into an empty one.
+    if (!this.storage || !this.canWrite) return false
     try {
       if (this.events.length === 0) this.storage.removeItem(this.key)
       else this.storage.setItem(this.key, JSON.stringify(this.events))
@@ -70,12 +74,28 @@ export class LocalProgressRepository {
     if (!this.storage) return
     // Merge only unsaved memory events. Do not resurrect records cleared in another tab.
     const stored = this.read()
+    this.canWrite = stored !== null
     if (stored === null) return
-    this.events = [...new Map([...stored, ...this.pending.values()].map(event => [event.id, event])).values()]
+    const merged = new Map<string, LearningEvent>()
+    for (const event of [...stored, ...this.pending.values()]) {
+      const existing = merged.get(event.id)
+      if (existing && JSON.stringify(existing) !== JSON.stringify(event)) {
+        this.canWrite = false
+        return
+      }
+      merged.set(event.id, event)
+    }
+    this.events = [...merged.values()]
+    this.hasSnapshot = true
+  }
+
+  private refreshForRead() {
+    this.refresh()
+    if (!this.hasSnapshot) throw new Error('storage-read-failed')
   }
 
   reviewStats(profileId: string): ReviewStat[] {
-    this.refresh()
+    this.refreshForRead()
     const byWord = new Map<string, Omit<ReviewStat, 'wordId'>>()
     for (const event of [...this.events].sort((a, b) => a.occurredAt - b.occurredAt)) {
       if (event.profileId !== profileId) continue
@@ -93,7 +113,7 @@ export class LocalProgressRepository {
   }
 
   dueReviewStats(profileId: string, now = Date.now()) {
-    this.refresh()
+    this.refreshForRead()
     const day = 86_400_000
     const intervals = [1, 3, 7, 14, 30]
     const states = new Map<string, ReviewStat & {dueAt: number; stage: number; lastPromotion: number}>()
@@ -123,7 +143,7 @@ export class LocalProgressRepository {
   }
 
   async getProgress(profileId: string): Promise<ServerProgress> {
-    this.refresh()
+    this.refreshForRead()
     const events = this.events.filter((event) => event.profileId === profileId)
     return {
       profileId,
@@ -134,13 +154,14 @@ export class LocalProgressRepository {
   }
 
   exportData(profileId: string) {
-    this.refresh()
+    this.refreshForRead()
     const events = this.events.filter((event) => event.profileId === profileId)
     return JSON.stringify({ version: 1, storage: 'this-device', exportedAt: Date.now(), profileId, events }, null, 2)
   }
 
   async clear(profileId: string) {
     this.refresh()
+    if (!this.hasSnapshot) throw new Error('storage-clear-failed')
     const previous = this.events
     const deletedEvents = this.events.filter((event) => event.profileId === profileId).length
     this.events = this.events.filter((event) => event.profileId !== profileId)

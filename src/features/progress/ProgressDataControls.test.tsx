@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { WordPlanetApi } from '../../app/api/client'
 import { ProgressDataControls } from './ProgressDataControls'
+import { LocalProgressRepository } from '../../app/progress/LocalProgressRepository'
 import { clearPendingPassport, hasPendingPassport, passportKey, readPassport, readPendingPassport, rememberPendingPassport, writePassport, type Achievement } from '../../games/passport'
 
 const achievement: Achievement = { game: 'bubble', bookId: 'four-upper', unit: 1, level: 1, completedRounds: 2, totalRounds: 2, firstTryCorrect: 1, completedAt: 100 }
@@ -19,6 +20,18 @@ beforeEach(() => clearPendingPassport())
 afterEach(() => { vi.restoreAllMocks(); clearPendingPassport() })
 
 describe('ProgressDataControls', () => {
+  it('offers memory-only answers for backup without claiming they were saved to the device', async () => {
+    const repository = new LocalProgressRepository({ storage: null })
+    const event = { id: 'pending-answer', profileId: 'local-child', wordId: 'sport', outcome: 'missed' as const, source: 'spelling' as const, occurredAt: 100 }
+    expect(await repository.record(event)).toBe('memory-only')
+    const download = vi.fn()
+    render(<ProgressDataControls api={{ ...apiWithProgress(), getProgress: profileId => repository.getProgress(profileId) }} download={download} />)
+    expect(await screen.findByText('当前有 1 条可备份的学习记录')).toBeVisible()
+    expect(screen.queryByText(/此设备已保存.*条学习记录/)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: '导出学习记录' }))
+    expect(JSON.parse(download.mock.calls[0][0]).events).toEqual([event])
+  })
+
   it('includes pending stars and better results in the backup without calling them saved', async () => {
     writePassport([achievement])
     const improved = { ...achievement, firstTryCorrect: 2 }
@@ -26,7 +39,7 @@ describe('ProgressDataControls', () => {
     rememberPendingPassport([improved, pending])
     const download = vi.fn()
     render(<ProgressDataControls api={apiWithProgress()} download={download} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.click(screen.getByRole('button', { name: '导出学习记录' }))
     expect(JSON.parse(download.mock.calls[0][0]).gamePassport.achievements).toEqual([improved, pending])
     expect(screen.getByText('此设备已保存 1 颗通关星')).toBeVisible()
@@ -39,7 +52,7 @@ describe('ProgressDataControls', () => {
   it('clears a pending-only passport only after a successful confirmed clear', async () => {
     rememberPendingPassport([achievement])
     render(<ProgressDataControls api={apiWithProgress()} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     const clear = screen.getByRole('button', { name: '清除记录与通关星' })
     expect(clear).toBeEnabled()
     await userEvent.click(clear)
@@ -58,7 +71,7 @@ describe('ProgressDataControls', () => {
     const api = apiWithProgress()
     if (failure === 'events') api.clearProgress.mockRejectedValueOnce(new Error('blocked'))
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.click(screen.getByRole('button', { name: '清除记录与通关星' }))
     const write = failure === 'passport' ? vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full') }) : undefined
     await userEvent.click(screen.getByRole('button', { name: '确认清除记录与通关星' }))
@@ -75,7 +88,7 @@ describe('ProgressDataControls', () => {
   it('merges pending stars into an imported passport and clears the pending notice only after saving', async () => {
     rememberPendingPassport([{ ...achievement, firstTryCorrect: 2 }, { ...achievement, level: 2 }])
     render(<ProgressDataControls api={apiWithProgress()} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: [achievement, { ...achievement, level: 3 }] } }))
     await screen.findByText('已加入 1 条学习记录，通关星已合并。重复的记录和通关星会自动跳过。')
     expect(readPassport()).toHaveLength(3)
@@ -88,7 +101,7 @@ describe('ProgressDataControls', () => {
   it('exports the current passport with the event backup and states the file-only transfer boundary', async () => {
     const download = vi.fn()
     render(<ProgressDataControls api={apiWithProgress()} download={download} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     writePassport([achievement])
     await userEvent.click(screen.getByRole('button', { name: '导出学习记录' }))
     expect(JSON.parse(download.mock.calls[0][0])).toMatchObject({ version: 1, events: [], gamePassport: { version: 1, achievements: [achievement] } })
@@ -99,7 +112,7 @@ describe('ProgressDataControls', () => {
     writePassport([achievement, { ...achievement, level: 2 }])
     const api = apiWithProgress()
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     const incoming = [{ ...achievement, firstTryCorrect: 2 }, { ...achievement, level: 3 }]
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: incoming } }))
     await screen.findByText('已加入 1 条学习记录，通关星已合并。重复的记录和通关星会自动跳过。')
@@ -114,7 +127,7 @@ describe('ProgressDataControls', () => {
     const original = localStorage.getItem(passportKey)
     const api = apiWithProgress()
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport }))
     await screen.findByText(/这份备份暂时无法导入/)
     expect(api.importProgress).not.toHaveBeenCalled()
@@ -125,7 +138,7 @@ describe('ProgressDataControls', () => {
     writePassport([achievement])
     const api = apiWithProgress()
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress }))
     await screen.findByText('已加入 1 条学习记录，重复的记录会自动跳过。')
     expect(readPassport()).toEqual([achievement])
@@ -136,7 +149,7 @@ describe('ProgressDataControls', () => {
     const api = apiWithProgress()
     api.importProgress.mockRejectedValue(new Error('events-blocked'))
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: [{ ...achievement, level: 2 }] } }))
     await screen.findByText(/这份备份暂时无法导入/)
     expect(readPassport()).toEqual([achievement])
@@ -147,7 +160,7 @@ describe('ProgressDataControls', () => {
     const api = apiWithProgress()
     const onChanged = vi.fn()
     render(<ProgressDataControls api={api} onChanged={onChanged} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full') })
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: [{ ...achievement, level: 2 }] } }))
     await screen.findByText('已加入 1 条学习记录，但通关星未恢复。原有通关星仍保留，请保留备份文件再试一次。')
@@ -160,7 +173,7 @@ describe('ProgressDataControls', () => {
     writePassport([achievement])
     const api = apiWithProgress()
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     const clear = screen.getByRole('button', { name: '清除记录与通关星' })
     expect(clear).toBeEnabled()
     await userEvent.click(clear)
@@ -177,13 +190,13 @@ describe('ProgressDataControls', () => {
     api.getProgress.mockResolvedValue({ ...emptyProgress, totalEvents: 1 })
     const onChanged = vi.fn()
     render(<ProgressDataControls api={api} onChanged={onChanged} />)
-    await screen.findByText('此设备已保存 1 条学习记录')
+    await screen.findByText('当前有 1 条可备份的学习记录')
     await userEvent.click(screen.getByRole('button', { name: '清除记录与通关星' }))
     const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
     await userEvent.click(screen.getByRole('button', { name: '确认清除记录与通关星' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('学习记录已清除，但通关星未清除。原有通关星仍保留，请再试一次。')
     expect(readPassport()).toEqual([achievement])
-    expect(screen.getByText('此设备已保存 0 条学习记录')).toBeVisible()
+    expect(screen.getByText('当前有 0 条可备份的学习记录')).toBeVisible()
     expect(onChanged).toHaveBeenCalledOnce()
     write.mockRestore()
     await userEvent.click(screen.getByRole('button', { name: '确认清除记录与通关星' }))
@@ -196,7 +209,7 @@ describe('ProgressDataControls', () => {
     rememberPendingPassport([achievement])
     const download = vi.fn()
     render(<ProgressDataControls api={apiWithProgress()} download={download} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.click(screen.getByRole('button', { name: '导出学习记录' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('备份没有导出成功')
     expect(download).not.toHaveBeenCalled()
@@ -208,7 +221,7 @@ describe('ProgressDataControls', () => {
     localStorage.setItem(passportKey, '{broken')
     const api = apiWithProgress()
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: [achievement] } }))
     await screen.findByText(/这份备份暂时无法导入/)
     expect(api.importProgress).not.toHaveBeenCalled()
@@ -220,7 +233,7 @@ describe('ProgressDataControls', () => {
     const original = localStorage.getItem(passportKey)
     const api = apiWithProgress()
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: [achievement] } }))
     await screen.findByText(/这份备份暂时无法导入/)
     expect(api.importProgress).not.toHaveBeenCalled()
@@ -232,7 +245,7 @@ describe('ProgressDataControls', () => {
     const api = apiWithProgress()
     api.getProgress.mockResolvedValueOnce(emptyProgress).mockRejectedValue(new Error('unreadable'))
     render(<ProgressDataControls api={api} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full') })
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: [{ ...achievement, level: 2 }] } }))
     expect(await screen.findByText('已加入 1 条学习记录，但通关星未恢复。原有通关星仍保留，请保留备份文件再试一次。')).toBeVisible()
@@ -241,7 +254,7 @@ describe('ProgressDataControls', () => {
   it('does not keep an old preservation warning after a later confirmed clear', async () => {
     writePassport([achievement])
     render(<ProgressDataControls api={apiWithProgress()} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     const write = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('full') })
     await userEvent.upload(screen.getByLabelText('导入学习记录'), backup({ version: 1, ...emptyProgress, gamePassport: { version: 1, achievements: [{ ...achievement, level: 2 }] } }))
     await screen.findByText(/但通关星未恢复/)
@@ -257,7 +270,7 @@ describe('ProgressDataControls', () => {
     const clearProgress = vi.fn().mockRejectedValueOnce(new Error('blocked')).mockResolvedValue({ status: 'cleared', deletedEvents: 1 })
     const api = { getBooks: vi.fn(), getWords: vi.fn(), clearProgress, getProgress: vi.fn().mockResolvedValue({ profileId: 'local-child', totalEvents: 1, priorityWordIds: [], events: [] }) }
     render(<ProgressDataControls api={api} onChanged={onChanged} />)
-    await screen.findByText('此设备已保存 1 条学习记录')
+    await screen.findByText('当前有 1 条可备份的学习记录')
     await userEvent.click(screen.getByRole('button', { name: '清除记录与通关星' }))
     expect(onChanged).not.toHaveBeenCalled()
     await userEvent.click(screen.getByRole('button', { name: '确认清除记录与通关星' }))
@@ -269,7 +282,7 @@ describe('ProgressDataControls', () => {
     const onChanged = vi.fn()
     const api = { getBooks: vi.fn(), getWords: vi.fn(), importProgress: vi.fn().mockResolvedValue({ imported: 1 }), getProgress: vi.fn().mockResolvedValue({ profileId: 'local-child', totalEvents: 1, priorityWordIds: [], events: [] }) }
     render(<ProgressDataControls api={api} onChanged={onChanged} />)
-    await screen.findByText('此设备已保存 1 条学习记录')
+    await screen.findByText('当前有 1 条可备份的学习记录')
     const file = new File(['{"version":1}'], 'backup.json', { type: 'application/json' })
     Object.defineProperty(file, 'text', { value: async () => '{"version":1}' })
     await userEvent.upload(screen.getByLabelText('导入学习记录'), file)
@@ -281,17 +294,17 @@ describe('ProgressDataControls', () => {
     const getProgress = vi.fn().mockResolvedValueOnce({ profileId: 'local-child', totalEvents: 0, priorityWordIds: [], events: [] })
       .mockResolvedValue({ profileId: 'local-child', totalEvents: 1, priorityWordIds: [], events: [{ id: 'new-answer', wordId: 'aunt', outcome: 'correct' }] })
     render(<ProgressDataControls api={{ getBooks: vi.fn(), getWords: vi.fn(), getProgress }} download={download} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.click(screen.getByRole('button', { name: '导出学习记录' }))
     expect(download).toHaveBeenCalledWith(expect.stringContaining('new-answer'))
-    expect(await screen.findByText('此设备已保存 1 条学习记录')).toBeVisible()
+    expect(await screen.findByText('当前有 1 条可备份的学习记录')).toBeVisible()
   })
 
   it('does not download stale data if the fresh export read fails', async () => {
     const download = vi.fn()
     const getProgress = vi.fn().mockResolvedValueOnce({ profileId: 'local-child', totalEvents: 0, priorityWordIds: [], events: [] }).mockRejectedValue(new Error('unavailable'))
     render(<ProgressDataControls api={{ getBooks: vi.fn(), getWords: vi.fn(), getProgress }} download={download} />)
-    await screen.findByText('此设备已保存 0 条学习记录')
+    await screen.findByText('当前有 0 条可备份的学习记录')
     await userEvent.click(screen.getByRole('button', { name: '导出学习记录' }))
     expect(download).not.toHaveBeenCalled()
     expect(await screen.findByRole('alert')).toHaveTextContent('备份没有导出成功')
@@ -307,7 +320,7 @@ describe('ProgressDataControls', () => {
     const onChanged = vi.fn()
     render(<ProgressDataControls api={api} download={download} onChanged={onChanged} />)
 
-    expect(await screen.findByText('此设备已保存 1 条学习记录')).toBeVisible()
+    expect(await screen.findByText('当前有 1 条可备份的学习记录')).toBeVisible()
     await user.click(screen.getByRole('button', { name: '导出学习记录' }))
     expect(download).toHaveBeenCalledWith(expect.stringContaining('"wordId": "apple"'))
 

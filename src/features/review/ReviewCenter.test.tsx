@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import type { ReviewItem, VocabularyWordContract } from '../../../shared/contracts'
@@ -13,6 +13,37 @@ const apple: VocabularyWordContract = {
 }
 
 describe('ReviewCenter', () => {
+  it('starts only the selected review category and offers a way out of an empty filter', async () => {
+    const user = userEvent.setup()
+    const missed = { word: apple, misses: 2, correct: 1, weakness: 1, lastAttemptAt: 300 }
+    const due = { word: { ...apple, id: 'pear', term: 'pear', meaningZh: '梨' }, misses: 0, correct: 1, weakness: 0, lastAttemptAt: 100, dueAt: 200 }
+    const onReview = vi.fn()
+    const api = { getReview: async () => ({ profileId: 'local-child', items: [missed, due] }) } as unknown as WordPlanetApi
+    const view = render(<ReviewCenter api={api} onReview={onReview} />)
+    await user.click(await screen.findByRole('button', { name: '到期复习 1' }))
+    expect(screen.queryByRole('heading', { name: 'apple' })).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'pear' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: '练这 1 个' }))
+    expect(onReview).toHaveBeenCalledWith([due])
+    await user.click(screen.getByRole('button', { name: '再练错词 1' }))
+    await user.click(screen.getByRole('button', { name: '练这 1 个' }))
+    expect(onReview).toHaveBeenLastCalledWith([missed])
+    view.rerender(<ReviewCenter api={{ ...api, getReview: async () => ({ profileId: 'local-child', items: [due] }) }} onReview={onReview} />)
+    await user.click(await screen.findByRole('button', { name: '查看全部复习词' }))
+    expect(screen.getByRole('heading', { name: 'pear' })).toBeVisible()
+  })
+
+  it('ignores an old review response after a new request has already rendered', async () => {
+    let finish!: (result: { profileId: string; items: ReviewItem[] }) => void
+    const oldApi = { getReview: () => new Promise(resolve => { finish = resolve }) } as unknown as WordPlanetApi
+    const newApi = { getReview: async () => ({ profileId: 'local-child', items: [] }) } as unknown as WordPlanetApi
+    const view = render(<ReviewCenter api={oldApi} onReview={vi.fn()} />)
+    view.rerender(<ReviewCenter api={newApi} onReview={vi.fn()} />)
+    await screen.findByText('现在没有需要复习的单词')
+    await act(async () => finish({ profileId: 'local-child', items: [{ word: apple, misses: 1, correct: 0, weakness: 1, lastAttemptAt: 300 }] }))
+    expect(screen.queryByRole('heading', { name: 'apple' })).not.toBeInTheDocument()
+    expect(screen.getByText('现在没有需要复习的单词')).toBeVisible()
+  })
   it('starts a short group from the first five actual review items', async () => {
     const user = userEvent.setup()
     const items: ReviewItem[] = Array.from({ length: 7 }, (_, index) => ({ word: { ...apple, id: `word-${index}`, term: `word${index}` }, misses: 1, correct: 0, weakness: index < 4 ? 1 : 0, lastAttemptAt: 300 }))

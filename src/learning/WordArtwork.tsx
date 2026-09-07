@@ -1,5 +1,5 @@
 import { Lightbulb } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 type WordArtworkProps = {
   image: { src: string; alt: string; license: string }
@@ -19,14 +19,19 @@ export function WordArtwork({ image, meaningZh = '', revealTerm = true, priority
   const [settled, setSettled] = useState<{ source: string; status: 'loaded' | 'failed' } | null>(null)
   const bundledArtwork = /^word-art\/[\w-]+\.(svg|webp)$/.test(image.src)
   const source = artworkSource(image.src, revealTerm)
+  const checkCachedImage = useCallback((node: HTMLImageElement | null) => {
+    if (source && node?.complete && node.naturalWidth > 0) setSettled({ source, status: 'loaded' })
+  }, [source])
 
   const status = settled?.source === source ? settled.status : 'loading'
   if (!source || status === 'failed') {
+    const canRetry = priority && !!source
     return (
-      <div className="word-artwork word-artwork--clue" role="img" aria-label={`词义联想：${meaningZh || '看提示想一想'}`}>
+      <div className={`word-artwork word-artwork--clue${canRetry ? ' word-artwork--retry' : ''}`} role={canRetry ? 'group' : 'img'} aria-label={`词义联想：${meaningZh || '看提示想一想'}`}>
         <Lightbulb aria-hidden="true" weight="duotone" />
         <small>词义联想</small>
         <strong>{meaningZh || '看提示想一想'}</strong>
+        {canRetry && <button type="button" className="word-artwork__retry" onClick={() => setSettled(null)}>重试图片</button>}
       </div>
     )
   }
@@ -36,6 +41,7 @@ export function WordArtwork({ image, meaningZh = '', revealTerm = true, priority
       {status !== 'loaded' && <div className="word-artwork__placeholder" aria-hidden="true"><Lightbulb weight="duotone" /><span>{meaningZh || '看提示想一想'}</span></div>}
       <img
         key={source}
+        ref={checkCachedImage}
         className="word-artwork__image"
         src={source}
         alt={image.alt}
